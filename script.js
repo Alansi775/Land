@@ -42,14 +42,14 @@ const TILE_LAYERS = {
 // Local Unit Conversion Rules
 const LOCAL_UNITS = {
     'صنعاء': {
-        unitName: 'اللبنة',
+        unitName: 'لبنة',
         unitValue: 44.44, // 1 لبنة = 44.44 متر مربع
         calculation: (m2) => m2 / 44.44
     },
     'ذمار': {
-        unitName: 'الحبل',
-        unitValue: 4444, // 1 حبل = 4444 متر مربع
-        calculation: (m2) => m2 / 4444
+        unitName: 'حبل',
+        unitValue: 127.99, // 1 حبل = 2.88 لبنة = 127.99 متر مربع
+        calculation: (m2) => m2 / 127.99
     }
 };
 
