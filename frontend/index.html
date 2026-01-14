@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الأراضي - Yemen Land Registry</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Toolbar (Combined Header + Toolbar) -->
+    <header class="header">
+        <div class="header-wrapper">
+            <div class="toolbar-section toolbar-left">
+                <button class="btn-toolbar" id="menuBtn" title="عرض قائمة الأراضي">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="coords-input">
+                    <i class="fas fa-location-dot"></i>
+                    <input type="text" id="coordsInputField" placeholder="14.46, 44.59">
+                </div>
+            </div>
+
+            <div class="toolbar-center">
+                <div class="logo-mini">
+                    <i class="fas fa-map-location-dot"></i>
+                    <span>نظام الأراضي</span>
+                </div>
+            </div>
+
+            <div class="toolbar-section toolbar-right">
+                <div class="stats-inline">
+                    <div class="stat-inline">
+                        <span class="stat-label">الأراضي</span>
+                        <span class="stat-value" id="totalLandsTop">0</span>
+                    </div>
+                    <div class="stat-inline">
+                        <span class="stat-label">م²</span>
+                        <span class="stat-value" id="selectedAreaTop">0</span>
+                    </div>
+                </div>
+                <button class="btn-toolbar" id="layerToggleBtn" title="تبديل طبقة الخريطة">
+                    <i class="fas fa-satellite"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
+        <!-- Left Sidebar (Lands List) - Hidden by default -->
+        <aside class="sidebar-left hidden" id="sidebarLeft">
+            <div class="sidebar-header">
+                <h2>الأراضي المسجلة</h2>
+                <button class="btn-close-sidebar" id="closeSidebarBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="ابحث عن أرض...">
+            </div>
+
+            <div class="lands-list" id="landsList">
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>لا توجد أراضي</p>
+                </div>
+            </div>
+
+            <button class="btn-add-land" id="addLandBtn">
+                <i class="fas fa-plus"></i>
+                إضافة أرض جديدة
+            </button>
+        </aside>
+
+        <!-- Main Map Section -->
+        <main class="map-container">
+            <!-- Map -->
+            <div id="map"></div>
+
+            <!-- Drawing Instructions (Hidden by default) -->
+            <div class="drawing-instructions" id="drawingInstructions" style="display: none;">
+                <div class="instructions-content">
+                    <i class="fas fa-mouse"></i>
+                    <h3>اضغط مطولاً على الخريطة</h3>
+                    <p>لتحديد نقاط حدود الأرض (3 نقاط على الأقل)</p>
+                </div>
+            </div>
+
+            <!-- Drawing Controls (Hidden by default) -->
+            <div class="drawing-controls" id="drawingControls" style="display: none;">
+                <div class="control-info">
+                    <div class="pulse-indicator"></div>
+                    <span>وضع الرسم: <strong id="pointsCountDisplay">0</strong> نقطة</span>
+                </div>
+                <div class="control-buttons">
+                    <button class="btn-small" id="undoDrawingBtn" title="حذف آخر نقطة">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button class="btn-small btn-success" id="confirmDrawing">
+                        <i class="fas fa-check"></i> إنهاء
+                    </button>
+                    <button class="btn-small btn-danger" id="cancelDrawingBtn">
+                        <i class="fas fa-times"></i> إلغاء
+                    </button>
+                </div>
+            </div>
+
+            <!-- Floating Action Button (for mobile) -->
+            <button class="fab" id="fabTogglePanel" style="display: none;" title="التفاصيل">
+                <i class="fas fa-info-circle"></i>
+            </button>
+        </main>
+    </div>
+
+    <!-- Details Modal Panel -->
+    <div class="modal-overlay" style="display: none;"></div>
+    <aside class="details-panel">
+        <div class="panel-header">
+            <h2 id="panelTitle">تفاصيل الأرض</h2>
+            <button class="btn-close" id="panelCloseBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="panel-body">
+            <form id="landForm" class="land-form">
+                <!-- Editable Fields -->
+                <div class="auto-fields">
+                    <div class="field-group">
+                        <label>المساحة (متر مربع)</label>
+                        <input type="number" id="areaInput" placeholder="0" min="0" step="0.01" readonly>
+                    </div>
+                    <div class="field-group">
+                        <label id="localUnitLabel">-</label>
+                        <input type="number" id="localUnitInput" placeholder="0" min="0" step="0.01">
+                    </div>
+                    <div class="field-group">
+                        <label>المحافظة</label>
+                        <select id="governorateInput">
+                            <option value="">-- اختر المحافظة --</option>
+                            <option value="صنعاء">صنعاء (اللبنة)</option>
+                            <option value="ذمار">ذمار (الحبل)</option>
+                            <option value="أخرى">أخرى</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="auto-fields">
+                    <div class="field-group">
+                        <label>خط العرض</label>
+                        <div class="auto-value" id="autoLat">-</div>
+                    </div>
+                    <div class="field-group">
+                        <label>خط الطول</label>
+                        <div class="auto-value" id="autoLng">-</div>
+                    </div>
+                </div>
+
+                <hr class="divider">
+
+                <!-- Input Fields -->
+                <div class="form-group">
+                    <label>اسم الأرض *</label>
+                    <input type="text" id="landName" required placeholder="أدخل اسم الأرض">
+                </div>
+
+                <div class="form-group">
+                    <label>الوصف</label>
+                    <textarea id="landDescription" placeholder="وصف تفصيلي..." rows="3"></textarea>
+                </div>
+
+                <hr class="divider">
+
+                <!-- Land Holder (Current Owner) -->
+                <div class="form-section-title">الحائز الحالي</div>
+                
+                <div class="form-group">
+                    <label>اسم الحائز</label>
+                    <input type="text" id="holderName" placeholder="اترك فارغاً إذا لم تكن الأرض في حوزة أحد">
+                </div>
+
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <div class="phone-input-group">
+                        <span class="phone-prefix">+967</span>
+                        <input type="tel" id="holderPhone" placeholder="701234567" inputmode="numeric" maxlength="9">
+                    </div>
+                </div>
+
+                <hr class="divider">
+
+                <!-- File Upload -->
+                <div class="form-group">
+                    <label>الملفات والصور</label>
+                    <div class="file-upload-box" id="fileUploadArea">
+                        <i class="fas fa-cloud-arrow-up"></i>
+                        <p>اسحب الملفات أو اضغط للاختيار</p>
+                        <small>صور و PDF حتى 10MB</small>
+                        <input type="file" id="fileInput" multiple accept="image/*,.pdf" hidden>
+                    </div>
+                    <div class="uploaded-files" id="uploadedFiles"></div>
+                </div>
+
+                <!-- Hidden Fields -->
+                <input type="hidden" id="landArea">
+                <input type="hidden" id="landProvince">
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> حفظ
+                    </button>
+                    <button type="button" id="navigateBtn" class="btn-secondary" style="display: none;">
+                        <i class="fas fa-map-location-dot"></i> التنقل
+                    </button>
+                    <button type="button" id="deleteLandBtn" class="btn-danger" style="display: none;">
+                        <i class="fas fa-trash"></i> حذف
+                    </button>
+                </div>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Image Viewer Modal -->
+    <div class="image-modal" id="imageModal">
+        <div class="image-modal-content">
+            <button class="image-modal-close" id="imageModalClose">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="imageModalImg" src="" alt="">
+            <div class="image-modal-nav">
+                <button class="image-modal-btn" id="imagePrevBtn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <span id="imageCounter">1/1</span>
+                <button class="image-modal-btn" id="imageNextBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
