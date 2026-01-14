@@ -1742,7 +1742,14 @@ function loadLandsFromStorage() {
 async function loadLandsFromServer() {
     try {
         console.log('جاري تحميل الأراضي من الخادم...');
-        const response = await fetch(`${CONFIG.apiUrl}/lands`);
+        console.log('📡 API URL:', CONFIG.apiUrl);
+        const response = await fetch(`${CONFIG.apiUrl}/lands`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
         
         if (response.ok) {
             const lands = await response.json();
