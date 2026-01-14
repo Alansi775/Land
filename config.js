@@ -1,9 +1,6 @@
-// 🔧 Configuration File - تحديث سهل للـ API URL
+// 🔧 Configuration File
 
 const API_CONFIG = {
-    // ✅ للتطوير - استخدم localhost أولاً
-    apiUrl: 'http://localhost:3000/api'
-    
-    // للـ ngrok (إذا شغّلت ngrok):
-    // apiUrl: 'https://46afd29c7138.ngrok-free.app/api'
+    // ✅ استخدم ngrok للـ GitHub Pages
+    apiUrl: 'https://46afd29c7138.ngrok-free.app/api'
 };

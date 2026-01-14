@@ -9,6 +9,22 @@ const CONFIG = {
     apiUrl: typeof API_CONFIG !== 'undefined' ? API_CONFIG.apiUrl : 'http://localhost:3000/api'
 };
 
+// Helper function for API requests with ngrok header
+function apiRequest(url, options = {}) {
+    const defaultHeaders = {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
+    };
+    
+    return fetch(url, {
+        ...options,
+        headers: {
+            ...defaultHeaders,
+            ...(options.headers || {})
+        }
+    });
+}
+
 // Tile layers for map switching
 const TILE_LAYERS = {
     dark: {
@@ -829,7 +845,10 @@ function removeFile(fileId) {
     if (!fileId) return;
     
     fetch(`${CONFIG.apiUrl}/files/${fileId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+            'ngrok-skip-browser-warning': 'true'
+        }
     })
     .then(res => {
         if (res.ok) {
@@ -983,7 +1002,8 @@ async function updateLand() {
         const response = await fetch(`${CONFIG.apiUrl}/lands/${landId}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify(updateData)
         });
@@ -1031,7 +1051,8 @@ async function saveLandToServer(landData) {
         const response = await fetch(`${CONFIG.apiUrl}/lands`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify(requestBody)
         });
@@ -1551,7 +1572,10 @@ async function deleteLand(idParam) {
     
     try {
         const response = await fetch(`${CONFIG.apiUrl}/lands/${landId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'ngrok-skip-browser-warning': 'true'
+            }
         });
         
         if (response.ok) {
