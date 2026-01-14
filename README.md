@@ -1,12 +1,87 @@
-# تطبيق ويب متكامل
+# 🗺️ Land Registry System - نظام إدارة الأراضي
 
-تطبيق ويب حديث بـ HTML, CSS, JavaScript في الواجهة الأمامية و Node.js مع MySQL في الخلفية.
+تطبيق ويب حديث لإدارة وتسجيل الأراضي مع خرائط تفاعلية، مبني بـ Leaflet.js و Node.js backend.
 
-## متطلبات النظام
+## ✨ المميزات
 
-- Node.js و npm
-- MySQL Server
-- أي متصفح ويب حديث
+- 🗺️ خريطة تفاعلية مع Leaflet.js
+- 📍 رسم وتحديد حدود الأراضي
+- 💾 تخزين معلومات الأرض (الاسم، المساحة، الموقع، بيانات الحائز)
+- 📱 واجهة مستخدم استجابية بتصميم داكن
+- 🌐 تحديثات فورية
+- 🔐 API Backend مع قاعدة بيانات MySQL
+
+## 🚀 البدء السريع
+
+### تشغيل Backend
+
+```bash
+cd backend
+npm install
+npm start
+```
+
+Backend يعمل على `http://localhost:3000/api`
+
+### تشغيل Frontend
+
+```bash
+cd frontend
+# افتح index.html في المتصفح
+# أو استخدم خادم محلي:
+python -m http.server 8000
+```
+
+زر `http://localhost:8000`
+
+## 📦 النشر
+
+### استخدام ngrok للـ Backend عن بعد
+
+1. **تثبيت ngrok:**
+```bash
+brew install ngrok/ngrok/ngrok
+```
+
+2. **تشغيل ngrok tunnel:**
+```bash
+ngrok http 3000
+```
+
+3. **تحديث config.js بـ ngrok URL:**
+```javascript
+const API_CONFIG = {
+    apiUrl: 'https://your-ngrok-url.ngrok.io/api'
+};
+```
+
+4. **رفع على GitHub:**
+```bash
+git add .
+git commit -m "Update ngrok URL"
+git push
+```
+
+### نشر على GitHub Pages
+
+1. فعّل GitHub Pages في إعدادات الـ repo
+2. اختر `main` branch كـ source
+3. الوصول للموقع: `https://USERNAME.github.io/Land/`
+
+## 🛠️ التقنيات المستخدمة
+
+- **Frontend:** HTML5, CSS3, JavaScript (Vanilla)
+- **Backend:** Node.js, Express.js
+- **Database:** MySQL
+- **Mapping:** Leaflet.js
+- **Icons:** Font Awesome 6.4.0
+- **RTL/Arabic:** دعم كامل للعربية
+
+## 📱 المتصفحات المدعومة
+
+- Chrome/Edge (الإصدار الأخير)
+- Firefox (الإصدار الأخير)
+- Safari (الإصدار الأخير)
 
 ## هيكل المشروع
 
