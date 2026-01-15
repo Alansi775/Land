@@ -30,28 +30,18 @@ const TILE_LAYERS = {
     dark: {
         name: 'خريطة داكنة',
         url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        attribution: '© OpenStreetMap contributors © CARTO'
+        attribution: '© Alansi Lands System'
     },
     satellite_google: {
-        name: 'قمر صناعي (Google)',
+        name: 'قمر صناعي',
         url: 'https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
         subdomains: ['0', '1', '2', '3'],
-        attribution: '© Google'
-    },
-    satellite_bing: {
-        name: 'قمر صناعي (Bing)',
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attribution: '© Microsoft'
-    },
-    satellite_mapbox: {
-        name: 'قمر صناعي (عالي الجودة)',
-        url: 'https://a.tiles.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw',
-        attribution: '© Mapbox'
+        attribution: '© Alansi Lands System'
     },
     street: {
-        name: 'شارع (OpenStreetMap)',
+        name: 'شارع',
         url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        attribution: '© OpenStreetMap contributors'
+        attribution: '© Alansi Lands System'
     }
 };
 
