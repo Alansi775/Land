@@ -1,17 +1,16 @@
-// 🔧 Configuration File
+// API Configuration
 
 const API_CONFIG = (() => {
     const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
     
-    // إذا كان المضيف localhost أو 127.0.0.1 → استخدم localhost API
+    // Local development
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
         return {
             apiUrl: 'http://localhost:3000/api'
         };
     }
     
-    // إذا كان GitHub Pages أو أي domain آخر → استخدم ngrok
+    // Production with ngrok
     return {
         apiUrl: 'https://7ff6fb80365b.ngrok-free.app/api'
     };
