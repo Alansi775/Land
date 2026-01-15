@@ -323,6 +323,37 @@ app.post('/api/lands/:id/files', upload.array('files', 10), async (req, res) => 
     }
 });
 
+// Get file (download)
+app.get('/api/files/:id', async (req, res) => {
+    try {
+        const [files] = await pool.query('SELECT file_path, file_name FROM land_files WHERE id = ?', [req.params.id]);
+        
+        if (files.length === 0) {
+            console.warn(`⚠️ File not found: ${req.params.id}`);
+            return res.status(404).json({ error: 'الملف غير موجود' });
+        }
+        
+        const filePath = files[0].file_path;
+        const fileName = files[0].file_name;
+        
+        console.log(`📥 Downloading file: ${filePath}`);
+        
+        // Check if file exists
+        try {
+            await fs.access(filePath);
+        } catch (err) {
+            console.error(`❌ File not found on disk: ${filePath}`);
+            return res.status(404).json({ error: 'الملف غير موجود في النظام' });
+        }
+        
+        // Send file
+        res.download(filePath, fileName);
+    } catch (error) {
+        console.error('❌ Error downloading file:', error);
+        res.status(500).json({ error: 'خطأ في تحميل الملف' });
+    }
+});
+
 // Delete file
 app.delete('/api/files/:id', async (req, res) => {
     try {

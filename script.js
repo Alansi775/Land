@@ -742,9 +742,15 @@ function renderUploadedFiles() {
         return;
     }
     
-    // Separate images and other files - SHOW ONLY ONE OF EACH
-    const images = state.uploadedFiles.filter(f => f.type && f.type.startsWith('image/'));
-    const otherFiles = state.uploadedFiles.filter(f => !f.type || !f.type.startsWith('image/'));
+    // Separate images and other files - check both file.type and file_type (from DB)
+    const images = state.uploadedFiles.filter(f => {
+        const type = f.type || f.file_type || '';
+        return type.startsWith('image/');
+    });
+    const otherFiles = state.uploadedFiles.filter(f => {
+        const type = f.type || f.file_type || '';
+        return !type.startsWith('image/');
+    });
     
     // Display only first image
     if (images.length > 0) {
@@ -771,17 +777,21 @@ function renderUploadedFiles() {
         `;
         
         const imgEl = document.createElement('img');
-        imgEl.src = img.data || img.path || img.url;
+        // Try multiple sources: data (base64), path (from DB), or API endpoint
+        const imageSrc = img.data || 
+                         (img.path ? `${CONFIG.apiUrl}/files/${img.id}` : '') || 
+                         (img.file_path ? `${CONFIG.apiUrl}/files/${img.id}` : '') ||
+                         img.url || '';
+        imgEl.src = imageSrc;
         imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
         imgEl.onerror = () => {
-            imgEl.style.background = '#666';
-            imgEl.textContent = '❌';
+            thumb.style.background = '#666';
+            thumb.innerHTML = '<i class="fas fa-image" style="font-size: 30px; color: #999; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"></i>';
         };
         
         thumb.appendChild(imgEl);
         thumb.addEventListener('click', () => {
-            const url = img.data || img.path || img.url;
-            if (url) window.open(url, '_blank');
+            window.open(imageSrc, '_blank');
         });
         thumb.addEventListener('mouseover', () => {
             thumb.style.transform = 'scale(1.05)';
@@ -816,7 +826,8 @@ function renderUploadedFiles() {
         `;
         
         const fileName = file.name || file.file_name || 'ملف';
-        const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
+        const isPdf = (file.type === 'application/pdf' || file.file_type === 'application/pdf') || fileName.endsWith('.pdf');
+        
         
         const icon = document.createElement('i');
         icon.className = `fas ${isPdf ? 'fa-file-pdf' : 'fa-file'}`;
@@ -827,10 +838,35 @@ function renderUploadedFiles() {
         nameSpan.textContent = fileName;
         nameSpan.style.cssText = 'color: white; font-size: 12px; flex: 1; cursor: pointer;';
         nameSpan.addEventListener('click', () => {
-            const url = file.data || file.path || file.url;
+            // فتح الملف
+            const url = file.data || 
+                        (file.path ? `${CONFIG.apiUrl}/files/${file.id}` : '') ||
+                        (file.file_path ? `${CONFIG.apiUrl}/files/${file.id}` : '') ||
+                        file.url || '';
             if (url) window.open(url, '_blank');
         });
         fileItem.appendChild(nameSpan);
+        
+        // Download button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.type = 'button';
+        downloadBtn.innerHTML = '<i class="fas fa-download" style="font-size: 12px;"></i>';
+        downloadBtn.style.cssText = `
+            background: #00D9FF;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        `;
+        downloadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (file.id) {
+                downloadFile(file.id, fileName);
+            }
+        });
+        fileItem.appendChild(downloadBtn);
         
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
@@ -1456,7 +1492,18 @@ function drawLandOnMap(land) {
         land.files.forEach(file => {
             const filePath = file.path || file.file_path || '';
             const fileName = file.file_name || file.name || '';
-            const isImage = filePath && /\.(jpg|jpeg|png|gif|webp)$/i.test(filePath);
+            const fileType = file.file_type || file.type || '';
+            const isImage = fileType.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
+            
+            // Build proper URL for file access
+            let fileUrl = '';
+            if (file.id) {
+                // If has ID, use API endpoint
+                fileUrl = `${CONFIG.apiUrl}/files/${file.id}`;
+            } else if (file.path || file.file_path) {
+                // If has path, construct URL
+                fileUrl = `${CONFIG.apiUrl}/files/${file.id}` || filePath;
+            }
             
             const fileItem = document.createElement('div');
             fileItem.style.cssText = `
@@ -1470,7 +1517,7 @@ function drawLandOnMap(land) {
             
             if (isImage) {
                 const img = document.createElement('img');
-                img.src = filePath;
+                img.src = fileUrl;
                 img.style.cssText = `
                     width: 60px;
                     height: 60px;
@@ -1487,7 +1534,7 @@ function drawLandOnMap(land) {
                 fileItem.appendChild(img);
                 fileItem.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    window.open(filePath, '_blank');
+                    window.open(fileUrl, '_blank');
                 });
                 fileItem.addEventListener('mouseover', () => fileItem.style.transform = 'scale(1.05)');
                 fileItem.addEventListener('mouseout', () => fileItem.style.transform = 'scale(1)');
@@ -1502,7 +1549,7 @@ function drawLandOnMap(land) {
                 fileItem.title = fileName;
                 fileItem.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    window.open(filePath, '_blank');
+                    window.open(fileUrl, '_blank');
                 });
                 fileItem.addEventListener('mouseover', () => fileItem.style.transform = 'scale(1.05)');
                 fileItem.addEventListener('mouseout', () => fileItem.style.transform = 'scale(1)');
