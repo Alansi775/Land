@@ -801,10 +801,9 @@ function renderUploadedFiles() {
         `;
         
         const imgEl = document.createElement('img');
-        // Try multiple sources: data (base64), path (from DB), or API endpoint
+        // Build proper URL for file access - ALWAYS use API endpoint if file has ID
         const imageSrc = img.data || 
-                         (img.path ? `${CONFIG.apiUrl}/files/${img.id}` : '') || 
-                         (img.file_path ? `${CONFIG.apiUrl}/files/${img.id}` : '') ||
+                         (img.id ? `${CONFIG.apiUrl}/files/${img.id}` : '') ||
                          img.url || '';
         imgEl.src = imageSrc;
         imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
@@ -1028,10 +1027,9 @@ function downloadFile(fileId, fileName) {
 function viewFileInModal(file) {
     if (!file) return;
     
-    // Handle both file object and individual parameters
+    // Build proper URL - ALWAYS use API endpoint if file has ID
     const fileUrl = file.data || 
-                    (file.path ? `${CONFIG.apiUrl}/files/${file.id}` : '') ||
-                    (file.file_path ? `${CONFIG.apiUrl}/files/${file.id}` : '') ||
+                    (file.id ? `${CONFIG.apiUrl}/files/${file.id}` : '') ||
                     file.url || '';
     const fileName = file.name || file.file_name || 'ملف';
     const fileType = file.type || file.file_type || '';
@@ -1049,6 +1047,8 @@ function viewFileInModal(file) {
     
     const isImage = (fileType && fileType.startsWith('image/')) || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
     const isPdf = fileType === 'application/pdf' || fileName.endsWith('.pdf');
+    
+    console.log(`📂 Opening file: ${fileName}, URL: ${fileUrl}, isImage: ${isImage}, isPdf: ${isPdf}`);
     
     // Reset
     image.style.display = 'none';
@@ -1707,7 +1707,7 @@ function drawLandOnMap(land) {
                 fileItem.appendChild(img);
                 fileItem.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    viewFileInModal(fileUrl, fileName, fileType);
+                    viewFileInModal(file);
                 });
                 fileItem.addEventListener('mouseover', () => fileItem.style.transform = 'scale(1.05)');
                 fileItem.addEventListener('mouseout', () => fileItem.style.transform = 'scale(1)');
@@ -1722,7 +1722,7 @@ function drawLandOnMap(land) {
                 fileItem.title = fileName;
                 fileItem.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    viewFileInModal(fileUrl, fileName, fileType);
+                    viewFileInModal(file);
                 });
                 fileItem.addEventListener('mouseover', () => fileItem.style.transform = 'scale(1.05)');
                 fileItem.addEventListener('mouseout', () => fileItem.style.transform = 'scale(1)');
