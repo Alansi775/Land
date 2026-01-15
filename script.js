@@ -1479,7 +1479,39 @@ function drawLandOnMap(land) {
                 `;
                 img.onerror = () => {
                     img.style.display = 'none';
-                    const icon = document.createElement('div');\n                    icon.innerHTML = '<i class=\"fas fa-image\" style=\"font-size: 20px; color: #999;\"></i>';\n                    icon.style.cssText = 'display: flex; align-items: center; justify-content: center; width: 60px; height: 60px;';\n                    fileItem.appendChild(icon);\n                };\n                fileItem.appendChild(img);\n                fileItem.addEventListener('click', (e) => {\n                    e.stopPropagation();\n                    window.open(filePath, '_blank');\n                });\n                fileItem.addEventListener('mouseover', () => fileItem.style.transform = 'scale(1.05)');\n                fileItem.addEventListener('mouseout', () => fileItem.style.transform = 'scale(1)');\n            } else {\n                // Non-image file\n                const icon = document.createElement('div');\n                const ext = fileName.split('.').pop().toLowerCase();\n                const isFile = ext === 'pdf';\n                icon.innerHTML = `<i class=\"fas ${isFile ? 'fa-file-pdf' : 'fa-file'}\" style=\"font-size: 20px; color: ${isFile ? '#FF9500' : '#3b82f6'};\"></i>`;\n                icon.style.cssText = 'display: flex; align-items: center; justify-content: center; width: 60px; height: 60px;';\n                fileItem.appendChild(icon);\n                fileItem.title = fileName;\n                fileItem.addEventListener('click', (e) => {\n                    e.stopPropagation();\n                    window.open(filePath, '_blank');\n                });\n                fileItem.addEventListener('mouseover', () => fileItem.style.transform = 'scale(1.05)');\n                fileItem.addEventListener('mouseout', () => fileItem.style.transform = 'scale(1)');\n            }\n            \n            filesContainer.appendChild(fileItem);\n        });\n\n        popupContainer.appendChild(filesContainer);
+                    const icon = document.createElement('div');
+                    icon.innerHTML = '<i class="fas fa-image" style="font-size: 20px; color: #999;"></i>';
+                    icon.style.cssText = 'display: flex; align-items: center; justify-content: center; width: 60px; height: 60px;';
+                    fileItem.appendChild(icon);
+                };
+                fileItem.appendChild(img);
+                fileItem.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.open(filePath, '_blank');
+                });
+                fileItem.addEventListener('mouseover', () => fileItem.style.transform = 'scale(1.05)');
+                fileItem.addEventListener('mouseout', () => fileItem.style.transform = 'scale(1)');
+            } else {
+                // Non-image file
+                const icon = document.createElement('div');
+                const ext = fileName.split('.').pop().toLowerCase();
+                const isPdf = ext === 'pdf';
+                icon.innerHTML = `<i class="fas ${isPdf ? 'fa-file-pdf' : 'fa-file'}" style="font-size: 20px; color: ${isPdf ? '#FF9500' : '#3b82f6'};"></i>`;
+                icon.style.cssText = 'display: flex; align-items: center; justify-content: center; width: 60px; height: 60px;';
+                fileItem.appendChild(icon);
+                fileItem.title = fileName;
+                fileItem.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.open(filePath, '_blank');
+                });
+                fileItem.addEventListener('mouseover', () => fileItem.style.transform = 'scale(1.05)');
+                fileItem.addEventListener('mouseout', () => fileItem.style.transform = 'scale(1)');
+            }
+            
+            filesContainer.appendChild(fileItem);
+        });
+
+        popupContainer.appendChild(filesContainer);
     }
 
     // Action buttons
