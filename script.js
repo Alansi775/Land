@@ -808,6 +808,7 @@ function renderUploadedFiles() {
         
         console.log(`🖼️ Loading image: ${img.file_name || img.name || 'Unknown'} (ID: ${img.id}), URL: ${imageSrc}`);
         console.log('📊 Image object:', img);
+        console.log('⚙️ CONFIG.apiUrl:', CONFIG.apiUrl);
         
         imgEl.src = imageSrc;
         imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
@@ -819,6 +820,12 @@ function renderUploadedFiles() {
         
         imgEl.onerror = (e) => {
             console.error(`❌ Image failed to load: ${imageSrc}`, e);
+            console.error('🔍 Image fetch error details:', {
+                src: imgEl.src,
+                complete: imgEl.complete,
+                naturalWidth: imgEl.naturalWidth,
+                naturalHeight: imgEl.naturalHeight
+            });
             thumb.style.background = '#666';
             thumb.innerHTML = '<i class="fas fa-image" style="font-size: 30px; color: #999; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"></i>';
         };
