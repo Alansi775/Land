@@ -199,13 +199,26 @@
 
                 <!-- File Upload -->
                 <div class="form-group">
-                    <label>الملفات والصور</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label>الملفات والصور</label>
+                        <button type="button" id="addFilesBtn" class="btn-icon-small" title="إضافة ملفات">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
                     <div class="file-upload-box" id="fileUploadArea">
                         <i class="fas fa-cloud-arrow-up"></i>
                         <p>اسحب الملفات أو اضغط للاختيار</p>
                         <small>صور و PDF حتى 10MB</small>
                         <input type="file" id="fileInput" multiple accept="image/*,.pdf" hidden>
                     </div>
+                    
+                    <!-- Uploaded Files from Database -->
+                    <div class="saved-files-section" id="savedFilesSection" style="display: none;">
+                        <div class="section-label">الملفات المحفوظة</div>
+                        <div class="saved-files-list" id="savedFilesList"></div>
+                    </div>
+                    
+                    <!-- Local Uploaded Files (before save) -->
                     <div class="uploaded-files" id="uploadedFiles"></div>
                 </div>
 

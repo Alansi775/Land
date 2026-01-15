@@ -951,6 +951,12 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: pointer;
+    color: var(--accent-blue);
+}
+
+.file-name:hover {
+    text-decoration: underline;
 }
 
 .file-size {
@@ -959,13 +965,77 @@ body {
     margin-top: 0.25rem;
 }
 
-.btn-remove {
+.file-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-remove, .btn-download {
     background: transparent;
     border: none;
-    color: var(--accent-red);
     cursor: pointer;
     padding: 0.5rem;
     transition: var(--transition);
+    font-size: 0.9rem;
+}
+
+.btn-remove {
+    color: var(--accent-red);
+}
+
+.btn-remove:hover {
+    color: #dc2626;
+}
+
+.btn-download {
+    color: var(--accent-green);
+}
+
+.btn-download:hover {
+    color: #059669;
+}
+
+/* Saved Files Section */
+.saved-files-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.section-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent-blue);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.saved-files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Icon Button */
+.btn-icon-small {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--accent-blue);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    font-size: 0.9rem;
+}
+
+.btn-icon-small:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: var(--accent-blue);
 }
 
 .btn-remove:hover {

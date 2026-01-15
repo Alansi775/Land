@@ -307,8 +307,12 @@ function initEventListeners() {
     // File Upload
     const fileUploadArea = document.getElementById('fileUploadArea');
     const fileInput = document.getElementById('fileInput');
+    const addFilesBtn = document.getElementById('addFilesBtn');
 
     fileUploadArea.addEventListener('click', () => fileInput.click());
+    if (addFilesBtn) {
+        addFilesBtn.addEventListener('click', () => fileInput.click());
+    }
     fileInput.addEventListener('change', handleFileSelect);
 
     // Area and Governorate change listeners
@@ -826,6 +830,116 @@ function openImageModal(images, index) {
     img.src = images[index].path || images[index].url;
     updateImageCounter();
     modal.classList.add('active');
+}
+
+// Render Saved Files from Database
+function renderSavedFiles(land) {
+    const section = document.getElementById('savedFilesSection');
+    const list = document.getElementById('savedFilesList');
+    
+    if (!land.files || land.files.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+    
+    section.style.display = 'block';
+    list.innerHTML = '';
+    
+    land.files.forEach((file, index) => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        
+        // Get file type icon
+        const fileName = file.file_name || file.name || '';
+        const fileExt = fileName.split('.').pop().toLowerCase();
+        let iconClass = 'fas fa-file';
+        if (fileExt === 'pdf') iconClass = 'fas fa-file-pdf';
+        else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) iconClass = 'fas fa-image';
+        
+        fileItem.innerHTML = `
+            <i class="file-icon ${iconClass}"></i>
+            <div class="file-info">
+                <div class="file-name" title="${fileName}">${fileName}</div>
+                <div class="file-size">${formatFileSize(file.file_size || file.size || 0)}</div>
+            </div>
+            <div class="file-actions">
+                <button type="button" class="btn-download" title="تحميل" onclick="downloadFile(${file.id || index}, '${fileName}')">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button type="button" class="btn-remove" title="حذف" onclick="deleteFileFromLand(${land.id}, ${file.id || index})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        // Make file name clickable to open
+        const fileNameEl = fileItem.querySelector('.file-name');
+        fileNameEl.addEventListener('click', () => openFile(file.file_path || file.path, fileName));
+        
+        list.appendChild(fileItem);
+    });
+}
+
+// Format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+}
+
+// Download file
+function downloadFile(fileId, fileName) {
+    const filePath = fileName; // في الحقيقة سنحتاج لـ file path من database
+    const a = document.createElement('a');
+    a.href = `/uploads/${fileName}`;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showNotification(`جاري تحميل: ${fileName}`, 'success');
+}
+
+// Open file (preview or download)
+function openFile(filePath, fileName) {
+    if (!filePath) return;
+    // إذا كانت صورة، افتح بـ modal
+    if (/\.(jpg|jpeg|png|gif|webp)$/i.test(fileName)) {
+        window.open(filePath, '_blank');
+    } else if (/\.pdf$/i.test(fileName)) {
+        // افتح PDF في نافذة جديدة
+        window.open(filePath, '_blank');
+    }
+}
+
+// Delete file from land
+async function deleteFileFromLand(landId, fileId) {
+    if (!confirm('هل تريد حذف هذا الملف؟')) return;
+    
+    try {
+        const response = await fetch(`${CONFIG.apiUrl}/lands/${landId}/files/${fileId}`, {
+            method: 'DELETE',
+            headers: {
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+        
+        if (response.ok) {
+            showNotification('✅ تم حذف الملف بنجاح', 'success');
+            // إعادة تحميل تفاصيل الأرض
+            loadLandsFromServer();
+            const land = state.lands.find(l => l.id === landId);
+            if (land) {
+                viewLandDetails(landId);
+            }
+        } else {
+            showNotification('❌ خطأ في حذف الملف', 'error');
+        }
+    } catch (error) {
+        console.error('خطأ:', error);
+        showNotification('❌ خطأ في الاتصال بالخادم', 'error');
+    }
 }
 
 function closeImageModal() {
@@ -1508,6 +1622,9 @@ function viewLandDetails(landId) {
 
     // Hide file upload area when viewing existing land
     document.getElementById('fileUploadArea').style.display = 'none';
+    
+    // Show saved files if they exist
+    renderSavedFiles(land);
     
     // Update submit button text
     const submitBtn = document.querySelector('#landForm button[type="submit"]');

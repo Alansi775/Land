@@ -340,6 +340,32 @@ app.delete('/api/files/:id', async (req, res) => {
     }
 });
 
+// Delete specific file for a land
+app.delete('/api/lands/:landId/files/:fileId', async (req, res) => {
+    try {
+        const [files] = await pool.query('SELECT file_path FROM land_files WHERE id = ? AND land_id = ?', [req.params.fileId, req.params.landId]);
+        
+        if (files.length === 0) {
+            return res.status(404).json({ error: 'الملف غير موجود' });
+        }
+        
+        // Delete from filesystem
+        try {
+            await fs.unlink(files[0].file_path);
+        } catch (err) {
+            console.error('Error deleting file from filesystem:', err);
+        }
+        
+        // Delete from database
+        await pool.query('DELETE FROM land_files WHERE id = ? AND land_id = ?', [req.params.fileId, req.params.landId]);
+        
+        res.json({ message: 'تم حذف الملف بنجاح' });
+    } catch (error) {
+        console.error('Error deleting file:', error);
+        res.status(500).json({ error: 'فشل في حذف الملف' });
+    }
+});
+
 // Search lands
 app.get('/api/lands/search/:query', async (req, res) => {
     try {
