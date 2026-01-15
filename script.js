@@ -802,8 +802,10 @@ function renderUploadedFiles() {
         
         const imgEl = document.createElement('img');
         // Build proper URL for file access - ALWAYS use API endpoint if file has ID
+        // Add timestamp to avoid caching issues
+        const timestamp = Date.now();
         const imageSrc = img.data || 
-                         (img.id ? `${CONFIG.apiUrl}/files/${img.id}` : '') ||
+                         (img.id ? `${CONFIG.apiUrl}/files/${img.id}?v=${timestamp}` : '') ||
                          img.url || '';
         
         console.log(`🖼️ Loading image: ${img.file_name || img.name || 'Unknown'} (ID: ${img.id}), URL: ${imageSrc}`);
@@ -1046,8 +1048,10 @@ function viewFileInModal(file) {
     if (!file) return;
     
     // Build proper URL - ALWAYS use API endpoint if file has ID
+    // Add timestamp to avoid caching issues
+    const timestamp = Date.now();
     const fileUrl = file.data || 
-                    (file.id ? `${CONFIG.apiUrl}/files/${file.id}` : '') ||
+                    (file.id ? `${CONFIG.apiUrl}/files/${file.id}?v=${timestamp}` : '') ||
                     file.url || '';
     const fileName = file.name || file.file_name || 'ملف';
     const fileType = file.type || file.file_type || '';
