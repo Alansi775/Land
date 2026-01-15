@@ -33,9 +33,19 @@ const TILE_LAYERS = {
         attribution: '© OpenStreetMap contributors © CARTO'
     },
     satellite: {
-        name: 'قمر صناعي',
+        name: 'قمر صناعي (USGS)',
+        url: 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}',
+        attribution: '© USGS'
+    },
+    satellite_esri: {
+        name: 'قمر صناعي (Esri)',
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         attribution: '© Esri'
+    },
+    hybrid: {
+        name: 'هجين',
+        url: 'https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png',
+        attribution: '© OpenStreetMap contributors'
     }
 };
 
@@ -202,7 +212,11 @@ function addMapLayerToggle() {
 
 // Toggle Map Layer
 function toggleTileLayer() {
-    const newLayer = state.currentTileLayer === 'dark' ? 'satellite' : 'dark';
+    // Cycle through layers: dark → satellite → satellite_esri → hybrid → dark
+    const layers = Object.keys(TILE_LAYERS);
+    const currentIndex = layers.indexOf(state.currentTileLayer);
+    const nextIndex = (currentIndex + 1) % layers.length;
+    const newLayer = layers[nextIndex];
     
     try {
         // Remove current layer
@@ -223,17 +237,10 @@ function toggleTileLayer() {
         
         state.currentTileLayer = newLayer;
         
-        // Update button icon and text
+        // Update button tooltip
         const btn = document.getElementById('layerToggleBtn');
         if (btn) {
-            const span = btn.querySelector('span');
-            if (newLayer === 'satellite') {
-                btn.innerHTML = '<i class="fas fa-satellite"></i>';
-                if (span) span.textContent = 'خريطة داكنة';
-            } else {
-                btn.innerHTML = '<i class="fas fa-map"></i>';
-                if (span) span.textContent = 'صور قمرية';
-            }
+            btn.title = `تبديل الخريطة: ${TILE_LAYERS[newLayer].name}`;
         }
         
         showNotification(`تم التبديل إلى ${TILE_LAYERS[newLayer].name}`, 'success');
