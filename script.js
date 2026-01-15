@@ -1591,15 +1591,18 @@ function drawLandOnMap(land) {
         width: 380px;
         max-height: 600px;
         overflow-y: auto;
-        background: #f5f5f5;
+        background: rgba(20, 20, 20, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     `;
 
     // Title
     const titleDiv = document.createElement('div');
     titleDiv.textContent = land.name;
     titleDiv.style.cssText = `
-        color: #1c1c1c;
+        color: #ffffff;
         font-size: 16px;
         font-weight: 700;
         margin-bottom: 12px;
@@ -1613,7 +1616,7 @@ function drawLandOnMap(land) {
     infoContainer.style.cssText = `
         padding: 12px 16px;
         font-size: 13px;
-        color: #333;
+        color: rgba(255, 255, 255, 0.9);
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
@@ -1622,12 +1625,12 @@ function drawLandOnMap(land) {
 
     const addInfoField = (label, value) => {
         const field = document.createElement('div');
-        field.style.cssText = `padding: 6px; background: white; border-radius: 6px;`;
+        field.style.cssText = `padding: 8px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; backdrop-filter: blur(8px);`;
         const labelEl = document.createElement('div');
-        labelEl.style.cssText = `font-size: 11px; color: #666; margin-bottom: 2px; font-weight: 600;`;
+        labelEl.style.cssText = `font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-bottom: 2px; font-weight: 600;`;
         labelEl.textContent = label;
         const valueEl = document.createElement('div');
-        valueEl.style.cssText = `font-size: 12px; color: #000; font-weight: 600;`;
+        valueEl.style.cssText = `font-size: 12px; color: #ffffff; font-weight: 600;`;
         valueEl.textContent = value || 'غير محدد';
         field.appendChild(labelEl);
         field.appendChild(valueEl);
@@ -1636,7 +1639,7 @@ function drawLandOnMap(land) {
 
     addInfoField('المحافظة', land.province);
     addInfoField('المنطقة الفرعية', land.subRegion);
-    addInfoField('نوع الغرس', land.cropType);
+    addInfoField('نوعية الغرس', land.cropType);
     addInfoField('المساحة', `${land.area} م²`);
     
     // Calculate local units for display
@@ -1648,21 +1651,61 @@ function drawLandOnMap(land) {
         }
     }
 
-    if (land.description) {
-        addInfoField('الوصف', land.description);
-    }
-
     const lat = land.centerLat ? parseFloat(land.centerLat) : null;
     const lng = land.centerLng ? parseFloat(land.centerLng) : null;
     addInfoField('الموقع', `${lat ? lat.toFixed(4) : '-'}, ${lng ? lng.toFixed(4) : '-'}`);
+    
+    popupContainer.appendChild(infoContainer);
+
+    // Description Section - Separate and larger
+    if (land.description) {
+        const descriptionDiv = document.createElement('div');
+        descriptionDiv.style.cssText = `
+            padding: 12px 16px;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            font-family: 'Cairo', sans-serif;
+        `;
+        
+        const descTitle = document.createElement('div');
+        descTitle.textContent = 'الوصف';
+        descTitle.style.cssText = `
+            font-size: 12px;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        `;
+        descriptionDiv.appendChild(descTitle);
+        
+        const descContent = document.createElement('div');
+        descContent.textContent = land.description;
+        descContent.style.cssText = `
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            backdrop-filter: blur(8px);
+        `;
+        descriptionDiv.appendChild(descContent);
+        popupContainer.appendChild(descriptionDiv);
+    }
     
     // Add holder information
     if (land.holderName || land.holderPhone) {
         const holderDiv = document.createElement('div');
         holderDiv.style.cssText = `
             padding: 12px 16px;
-            border-top: 1px solid #ddd;
-            border-bottom: 1px solid #ddd;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-family: 'Cairo', sans-serif;
         `;
         
@@ -1671,7 +1714,7 @@ function drawLandOnMap(land) {
         holderTitle.style.cssText = `
             font-size: 12px;
             font-weight: 700;
-            color: #3b82f6;
+            color: #60a5fa;
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -1680,7 +1723,7 @@ function drawLandOnMap(land) {
         
         if (land.holderName) {
             const nameDiv = document.createElement('div');
-            nameDiv.style.cssText = `font-size: 13px; color: #000; font-weight: 600; margin-bottom: 4px;`;
+            nameDiv.style.cssText = `font-size: 13px; color: #ffffff; font-weight: 600; margin-bottom: 4px;`;
             nameDiv.textContent = land.holderName;
             holderDiv.appendChild(nameDiv);
         }
@@ -1692,19 +1735,19 @@ function drawLandOnMap(land) {
             phoneLink.textContent = land.holderPhone;
             phoneLink.style.cssText = `
                 font-size: 12px;
-                color: #3b82f6;
+                color: #60a5fa;
                 font-weight: 600;
                 text-decoration: none;
                 cursor: pointer;
                 display: inline-block;
                 padding: 2px 0;
-                border-bottom: 1px solid #3b82f6;
+                border-bottom: 1px solid #60a5fa;
             `;
             phoneLink.addEventListener('mouseover', () => {
-                phoneLink.style.color = '#2563eb';
+                phoneLink.style.color = '#93c5fd';
             });
             phoneLink.addEventListener('mouseout', () => {
-                phoneLink.style.color = '#3b82f6';
+                phoneLink.style.color = '#60a5fa';
             });
             phoneDiv.appendChild(phoneLink);
             holderDiv.appendChild(phoneDiv);
@@ -1722,7 +1765,7 @@ function drawLandOnMap(land) {
         filesTitle.style.cssText = `
             font-size: 12px;
             font-weight: 700;
-            color: #3b82f6;
+            color: #60a5fa;
             padding: 8px 16px 4px;
             font-family: 'Cairo', sans-serif;
             text-transform: uppercase;
@@ -1753,8 +1796,7 @@ function drawLandOnMap(land) {
                 position: relative;
                 border-radius: 6px;
                 overflow: hidden;
-                background: #e5e5e5;
-                cursor: pointer;
+                background: rgba(255, 255, 255, 0.1);
                 transition: all 0.2s;
             `;
             
