@@ -10,7 +10,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'],
+    credentials: false
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
@@ -357,14 +365,27 @@ app.get('/api/files/:id', async (req, res) => {
             res.setHeader('Content-Type', fileType || 'image/jpeg');
             res.setHeader('Cache-Control', 'public, max-age=3600');
             res.setHeader('Access-Control-Allow-Origin', '*');
-            res.sendFile(path.resolve(filePath));
+            res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+            res.setHeader('X-Content-Type-Options', 'nosniff');
+            res.sendFile(path.resolve(filePath), {
+                headers: {
+                    'Content-Type': fileType || 'image/jpeg'
+                }
+            });
         } else if (isPdf) {
             // Serve PDF inline
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', 'inline; filename=' + fileName);
             res.setHeader('Cache-Control', 'public, max-age=3600');
             res.setHeader('Access-Control-Allow-Origin', '*');
-            res.sendFile(path.resolve(filePath));
+            res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+            res.sendFile(path.resolve(filePath), {
+                headers: {
+                    'Content-Type': 'application/pdf'
+                }
+            });
         } else {
             // Download for other files
             res.download(filePath, fileName);
