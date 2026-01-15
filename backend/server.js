@@ -100,6 +100,8 @@ async function initDatabase() {
                 name VARCHAR(255) NOT NULL,
                 description TEXT,
                 province VARCHAR(100),
+                subRegion VARCHAR(100),
+                cropType VARCHAR(100),
                 area DECIMAL(15, 2),
                 centerLat DECIMAL(10, 8),
                 centerLng DECIMAL(11, 8),
@@ -114,6 +116,18 @@ async function initDatabase() {
         `);
 
         // Add new columns if they don't exist
+        try {
+            await connection.query(`ALTER TABLE lands ADD COLUMN subRegion VARCHAR(100) AFTER province`);
+        } catch (error) {
+            // Column might already exist
+        }
+
+        try {
+            await connection.query(`ALTER TABLE lands ADD COLUMN cropType VARCHAR(100) AFTER subRegion`);
+        } catch (error) {
+            // Column might already exist
+        }
+
         try {
             await connection.query(`ALTER TABLE lands ADD COLUMN centerLat DECIMAL(10, 8) AFTER area`);
         } catch (error) {
@@ -247,16 +261,35 @@ app.post('/api/lands', async (req, res) => {
 
 // Update land
 app.put('/api/lands/:id', async (req, res) => {
-    const { name, description, province, area, centerLat, centerLng, points, holderName, holderPhone } = req.body;
+    const { name, description, province, area, centerLat, centerLng, points, holderName, holderPhone, subRegion, cropType } = req.body;
     
     try {
         await pool.query(`
             UPDATE lands 
-            SET name = ?, description = ?, province = ?, area = ?, centerLat = ?, centerLng = ?, points = ?, holderName = ?, holderPhone = ?
+            SET name = ?, description = ?, province = ?, subRegion = ?, cropType = ?, area = ?, centerLat = ?, centerLng = ?, points = ?, holderName = ?, holderPhone = ?
             WHERE id = ?
-        `, [name, description, province, area, centerLat, centerLng, JSON.stringify(points), holderName || null, holderPhone || null, req.params.id]);
+        `, [name, description, province, subRegion || null, cropType || null, area, centerLat, centerLng, JSON.stringify(points), holderName || null, holderPhone || null, req.params.id]);
         
-        res.json({ message: 'تم تحديث الأرض بنجاح' });
+        // Fetch and return the updated land data
+        const [updatedLand] = await pool.query('SELECT * FROM lands WHERE id = ?', [req.params.id]);
+        
+        if (updatedLand.length > 0) {
+            const land = updatedLand[0];
+            const [files] = await pool.query('SELECT * FROM land_files WHERE land_id = ?', [req.params.id]);
+            
+            // Parse JSON fields safely
+            try {
+                land.points = typeof land.points === 'string' ? JSON.parse(land.points) : land.points;
+            } catch (parseError) {
+                console.warn('Could not parse points JSON:', parseError);
+                land.points = [];
+            }
+            land.files = files;
+            
+            res.json({ message: 'تم تحديث الأرض بنجاح', land });
+        } else {
+            res.status(404).json({ error: 'الأرض غير موجودة' });
+        }
     } catch (error) {
         console.error('Error updating land:', error);
         res.status(500).json({ error: 'فشل في تحديث الأرض' });

@@ -142,10 +142,10 @@ function initMap() {
         markerZoomAnimation: true  // Enable marker zoom animation
     });
 
-    // Add dark tile layer by default
-    state.currentLayer = L.tileLayer(TILE_LAYERS.dark.url, {
-        attribution: TILE_LAYERS.dark.attribution,
-        subdomains: 'abcd',
+    // Add satellite tile layer by default
+    state.currentLayer = L.tileLayer(TILE_LAYERS.satellite_google.url, {
+        attribution: TILE_LAYERS.satellite_google.attribution,
+        subdomains: TILE_LAYERS.satellite_google.subdomains,
         maxZoom: 22
     }).addTo(state.map);
 
@@ -1329,6 +1329,8 @@ async function updateLand() {
 
     const areaValue = parseFloat(document.getElementById('areaInput').value) || 0;
     const province = document.getElementById('governorateInput').value;
+    const subRegion = document.getElementById('subRegionInput').value.trim() || null;
+    const cropType = document.getElementById('cropTypeInput').value.trim() || null;
 
     if (!areaValue || !province) {
         showNotification('يجب إدخال المساحة واختيار المحافظة', 'error');
@@ -1352,6 +1354,8 @@ async function updateLand() {
         name: landName,
         description: document.getElementById('landDescription').value,
         province: province,
+        subRegion: subRegion,
+        cropType: cropType,
         area: areaValue,
         holderName: holderName || null,
         holderPhone: fullPhoneNumber,
@@ -1407,6 +1411,8 @@ async function saveLandToServer(landData) {
             name: landData.name,
             description: landData.description,
             province: landData.province,
+            subRegion: landData.subRegion || null,
+            cropType: landData.cropType || null,
             area: landData.area,
             holderName: landData.holderName || null,
             holderPhone: landData.holderPhone || null,
@@ -1606,6 +1612,8 @@ function drawLandOnMap(land) {
     };
 
     addInfoField('المحافظة', land.province);
+    addInfoField('المنطقة الفرعية', land.subRegion);
+    addInfoField('نوع الغرس', land.cropType);
     addInfoField('المساحة', `${land.area} م²`);
     
     // Calculate local units for display
@@ -1909,6 +1917,8 @@ function viewLandDetails(landId) {
     document.getElementById('landDescription').value = land.description || '';
     document.getElementById('areaInput').value = land.area || 0;
     document.getElementById('governorateInput').value = land.province || '';
+    document.getElementById('subRegionInput').value = land.subRegion || '';
+    document.getElementById('cropTypeInput').value = land.cropType || '';
     
     // Populate holder information
     document.getElementById('holderName').value = land.holderName || '';

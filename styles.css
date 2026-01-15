@@ -44,14 +44,16 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: auto;
+    height: 70px;
     padding: 1rem 2rem;
-    background: rgba(10, 10, 10, 0.98);
-    backdrop-filter: var(--blur);
-    border-bottom: 1px solid var(--border);
-    z-index: 1000;
+    background: rgba(10, 10, 10, 0.3);
+    backdrop-filter: blur(10px) saturate(180%);
+    -webkit-backdrop-filter: blur(10px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 9999;
     display: flex;
     align-items: center;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
 }
 
 .header-wrapper {
@@ -127,8 +129,8 @@ body {
 .app-container {
     display: flex;
     flex-direction: row;
-    height: calc(100vh - 80px);
-    margin-top: 80px;
+    height: calc(100vh - 70px);
+    margin-top: 70px;
     gap: 0;
     padding: 0;
     position: relative;
@@ -138,7 +140,7 @@ body {
 .sidebar-left {
     position: fixed;
     right: 0;
-    top: 80px;
+    top: 70px;
     bottom: 0;
     width: 340px;
     background: rgba(26, 26, 26, 0.98);
@@ -344,7 +346,6 @@ body {
     display: flex;
     flex-direction: column;
     position: relative;
-    background: #0a0a0a;
     width: 100%;
     height: 100%;
     z-index: 1;
@@ -1435,6 +1436,258 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
+}
+
+/* MOBILE RESPONSIVE - Extra Small Devices (320px - 480px) */
+@media (max-width: 480px) {
+    /* Header adjustments */
+    .header {
+        padding: 0.75rem 1rem;
+        height: auto;
+    }
+
+    .header-wrapper {
+        gap: 0.5rem;
+    }
+
+    .toolbar-section {
+        gap: 0.25rem;
+    }
+
+    .logo-mini {
+        font-size: 0.95rem;
+        gap: 0.5rem;
+    }
+
+    .logo-mini i {
+        font-size: 18px;
+    }
+
+    .stats-inline {
+        display: none;
+    }
+
+    .coords-input {
+        display: none;
+    }
+
+    /* Sidebar for mobile */
+    .sidebar-left {
+        width: 85vw;
+        top: 60px;
+        height: calc(100vh - 60px);
+    }
+
+    .sidebar-header {
+        padding: 1rem;
+    }
+
+    .sidebar-header h2 {
+        font-size: 0.8rem;
+    }
+
+    /* Details panel for mobile */
+    .details-panel {
+        top: 60px;
+        height: calc(100vh - 60px);
+        width: 100%;
+    }
+
+    .panel-header {
+        padding: 1rem;
+    }
+
+    .panel-header h2 {
+        font-size: 1rem;
+    }
+
+    .panel-body {
+        padding: 1rem;
+    }
+
+    /* Form adjustments */
+    .land-form {
+        gap: 0.75rem;
+    }
+
+    .auto-fields {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .field-group label {
+        font-size: 0.75rem;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select,
+    .auto-fields input,
+    .auto-fields select {
+        padding: 0.65rem;
+        font-size: 0.85rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger {
+        min-width: 100%;
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    /* FAB button */
+    .fab {
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+        left: 1rem;
+        bottom: 1rem;
+    }
+
+    /* Modal adjustments */
+    .image-modal-content {
+        width: 95%;
+        max-height: 60vh;
+    }
+
+    .image-modal-nav {
+        gap: 8px;
+        padding: 6px 12px;
+    }
+
+    .image-modal-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+
+    /* File viewer for mobile */
+    .file-viewer-container {
+        width: 98%;
+        height: 90vh;
+        border-radius: 8px;
+    }
+
+    .file-viewer-header {
+        padding: 12px;
+    }
+
+    .file-viewer-header h3 {
+        font-size: 14px;
+    }
+
+    .btn-download {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    /* Drawing controls */
+    .drawing-controls {
+        width: calc(100% - 1rem);
+        bottom: 1rem;
+        gap: 0.5rem;
+    }
+
+    .control-info {
+        font-size: 0.85rem;
+    }
+
+    .btn-small {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    /* Toolbar buttons */
+    .btn-toolbar {
+        width: 40px;
+        height: 40px;
+        font-size: 0.9rem;
+    }
+
+    /* Land labels on map */
+    .land-label-text {
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+
+    /* Leaflet zoom controls */
+    .leaflet-control-zoom a {
+        width: 36px !important;
+        height: 36px !important;
+        line-height: 36px !important;
+    }
+
+    /* Popup styling */
+    .land-popup.leaflet-popup-content-wrapper {
+        border-radius: 8px;
+    }
+
+    /* Search box */
+    .search-box {
+        padding: 0.75rem;
+    }
+
+    .search-box input {
+        padding: 0.6rem 0.8rem 0.6rem 2rem;
+        font-size: 0.85rem;
+    }
+
+    /* Empty state */
+    .empty-state {
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .empty-state i {
+        font-size: 2rem;
+    }
+
+    .empty-state p {
+        font-size: 0.85rem;
+    }
+
+    /* Land items in sidebar */
+    .land-item {
+        padding: 0.75rem;
+    }
+
+    .land-name {
+        font-size: 0.9rem;
+    }
+
+    .land-info {
+        font-size: 0.8rem;
+    }
+
+    /* Add land button */
+    .btn-add-land {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    /* File items */
+    .file-item {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+
+    .file-name {
+        font-size: 0.85rem;
+    }
+
+    .file-size {
+        font-size: 0.75rem;
+    }
+
+    /* Uploaded files */
+    .uploaded-files {
+        gap: 0.5rem;
+    }
 }
 
 @keyframes fadeIn {

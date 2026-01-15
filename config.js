@@ -13,6 +13,6 @@ const API_CONFIG = (() => {
     
     // إذا كان GitHub Pages أو أي domain آخر → استخدم ngrok
     return {
-        apiUrl: 'https://eab7f64bcc3a.ngrok-free.app/api'
+        apiUrl: 'https://02131f70f302.ngrok-free.app/api'
     };
 })();
