@@ -261,6 +261,27 @@
         </div>
     </div>
 
+    <!-- File Viewer Modal (for images and PDF) -->
+    <div class="file-viewer-modal" id="fileViewerModal">
+        <div class="file-viewer-container">
+            <div class="file-viewer-header">
+                <h3 id="fileViewerTitle">عرض الملف</h3>
+                <div class="file-viewer-actions">
+                    <button class="btn-download" id="fileViewerDownloadBtn" title="تحميل">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="file-viewer-close" id="fileViewerClose">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="file-viewer-content">
+                <img id="fileViewerImage" src="" alt="" style="display: none; width: 100%; height: 100%; object-fit: contain;">
+                <iframe id="fileViewerPDF" src="" style="display: none; width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="config.js?v=1"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

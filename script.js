@@ -349,6 +349,30 @@ function initEventListeners() {
     if (navigateBtn) {
         navigateBtn.addEventListener('click', navigateToLand);
     }
+    
+    // File Viewer Modal events
+    const fileViewerClose = document.getElementById('fileViewerClose');
+    const fileViewerModal = document.getElementById('fileViewerModal');
+    if (fileViewerClose) {
+        fileViewerClose.addEventListener('click', closeFileViewer);
+    }
+    if (fileViewerModal) {
+        fileViewerModal.addEventListener('click', (e) => {
+            if (e.target === fileViewerModal) {
+                closeFileViewer();
+            }
+        });
+    }
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('fileViewerModal');
+            if (modal && modal.classList.contains('active')) {
+                closeFileViewer();
+            }
+        }
+    });
 }
 
 // Get User Location
@@ -929,6 +953,56 @@ function downloadFile(fileId, fileName) {
     a.click();
     document.body.removeChild(a);
     showNotification(`جاري تحميل: ${fileName}`, 'success');
+}
+
+// View file in modal (images and PDF)
+function viewFileInModal(fileUrl, fileName, fileType) {
+    const modal = document.getElementById('fileViewerModal');
+    const title = document.getElementById('fileViewerTitle');
+    const image = document.getElementById('fileViewerImage');
+    const pdf = document.getElementById('fileViewerPDF');
+    const downloadBtn = document.getElementById('fileViewerDownloadBtn');
+    
+    const isImage = fileType.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
+    const isPdf = fileType === 'application/pdf' || fileName.endsWith('.pdf');
+    
+    // Reset
+    image.style.display = 'none';
+    pdf.style.display = 'none';
+    
+    // Set title
+    title.textContent = fileName;
+    
+    // Set download handler
+    downloadBtn.onclick = () => {
+        const a = document.createElement('a');
+        a.href = fileUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showNotification(`جاري تحميل: ${fileName}`, 'success');
+    };
+    
+    // Show appropriate viewer
+    if (isImage) {
+        image.src = fileUrl;
+        image.style.display = 'block';
+    } else if (isPdf) {
+        pdf.src = fileUrl;
+        pdf.style.display = 'block';
+    }
+    
+    // Show modal
+    modal.classList.add('active');
+}
+
+// Close file viewer modal
+function closeFileViewer() {
+    const modal = document.getElementById('fileViewerModal');
+    modal.classList.remove('active');
+    document.getElementById('fileViewerImage').src = '';
+    document.getElementById('fileViewerPDF').src = '';
 }
 
 // Open file (preview or download)
@@ -1529,7 +1603,7 @@ function drawLandOnMap(land) {
                 fileItem.appendChild(img);
                 fileItem.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    window.open(fileUrl, '_blank');
+                    viewFileInModal(fileUrl, fileName, fileType);
                 });
                 fileItem.addEventListener('mouseover', () => fileItem.style.transform = 'scale(1.05)');
                 fileItem.addEventListener('mouseout', () => fileItem.style.transform = 'scale(1)');
@@ -1544,7 +1618,7 @@ function drawLandOnMap(land) {
                 fileItem.title = fileName;
                 fileItem.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    window.open(fileUrl, '_blank');
+                    viewFileInModal(fileUrl, fileName, fileType);
                 });
                 fileItem.addEventListener('mouseover', () => fileItem.style.transform = 'scale(1.05)');
                 fileItem.addEventListener('mouseout', () => fileItem.style.transform = 'scale(1)');
