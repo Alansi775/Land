@@ -842,7 +842,7 @@ function renderUploadedFiles() {
         deleteBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (img.id) {
-                deleteFileFromLand(state.selectedLandId, img.id);
+                deleteFileFromLand(state.selectedLandId, img.id, img.name || img.file_name || 'صورة');
             } else {
                 const idx = state.uploadedFiles.indexOf(img);
                 if (idx > -1) {
@@ -971,7 +971,7 @@ function renderUploadedFiles() {
             e.stopPropagation();
             // If file has ID (from database), delete from server
             if (file.id) {
-                deleteFileFromLand(state.selectedLandId, file.id);
+                deleteFileFromLand(state.selectedLandId, file.id, file.name || file.file_name || 'ملف');
             } else {
                 // If no ID (local file), just remove from state
                 const idx = state.uploadedFiles.indexOf(file);
@@ -1025,14 +1025,29 @@ function downloadFile(fileId, fileName) {
 }
 
 // View file in modal (images and PDF)
-function viewFileInModal(fileUrl, fileName, fileType) {
+function viewFileInModal(file) {
+    if (!file) return;
+    
+    // Handle both file object and individual parameters
+    const fileUrl = file.data || 
+                    (file.path ? `${CONFIG.apiUrl}/files/${file.id}` : '') ||
+                    (file.file_path ? `${CONFIG.apiUrl}/files/${file.id}` : '') ||
+                    file.url || '';
+    const fileName = file.name || file.file_name || 'ملف';
+    const fileType = file.type || file.file_type || '';
+    
+    if (!fileUrl) {
+        showNotification('❌ لا يمكن فتح الملف', 'error');
+        return;
+    }
+    
     const modal = document.getElementById('fileViewerModal');
     const title = document.getElementById('fileViewerTitle');
     const image = document.getElementById('fileViewerImage');
     const pdf = document.getElementById('fileViewerPDF');
     const downloadBtn = document.getElementById('fileViewerDownloadBtn');
     
-    const isImage = fileType.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
+    const isImage = (fileType && fileType.startsWith('image/')) || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
     const isPdf = fileType === 'application/pdf' || fileName.endsWith('.pdf');
     
     // Reset
@@ -1044,13 +1059,7 @@ function viewFileInModal(fileUrl, fileName, fileType) {
     
     // Set download handler
     downloadBtn.onclick = () => {
-        const a = document.createElement('a');
-        a.href = fileUrl;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        showNotification(`جاري تحميل: ${fileName}`, 'success');
+        downloadFile(file.id || fileName, fileName);
     };
     
     // Show appropriate viewer
@@ -1060,6 +1069,10 @@ function viewFileInModal(fileUrl, fileName, fileType) {
     } else if (isPdf) {
         pdf.src = fileUrl;
         pdf.style.display = 'block';
+    } else {
+        // For other files, just download
+        downloadFile(file.id || fileName, fileName);
+        return;
     }
     
     // Show modal
@@ -1087,11 +1100,11 @@ function openFile(filePath, fileName) {
 }
 
 // Delete file from land
-async function deleteFileFromLand(landId, fileId) {
-    if (!confirm('هل تريد حذف هذا الملف؟')) return;
+async function deleteFileFromLand(landId, fileId, fileName = 'الملف') {
+    if (!confirm(`هل أنت متأكد أنك تريد حذف: ${fileName}؟`)) return;
     
     try {
-        console.log(`🗑️ Deleting file ${fileId} from land ${landId}`);
+        console.log(`🗑️ Deleting file ${fileId} (${fileName}) from land ${landId}`);
         
         const response = await fetch(`${CONFIG.apiUrl}/lands/${landId}/files/${fileId}`, {
             method: 'DELETE',
@@ -1101,7 +1114,7 @@ async function deleteFileFromLand(landId, fileId) {
         });
         
         if (response.ok) {
-            showNotification('✅ تم حذف الملف بنجاح', 'success');
+            showNotification(`✅ تم حذف ${fileName} بنجاح`, 'success');
             
             // Remove from local state immediately
             state.uploadedFiles = state.uploadedFiles.filter(f => f.id !== fileId);
