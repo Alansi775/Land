@@ -32,19 +32,25 @@ const TILE_LAYERS = {
         url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
         attribution: '© OpenStreetMap contributors © CARTO'
     },
-    satellite: {
-        name: 'قمر صناعي (USGS)',
-        url: 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}',
-        attribution: '© USGS'
+    satellite_google: {
+        name: 'قمر صناعي (Google)',
+        url: 'https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        subdomains: ['0', '1', '2', '3'],
+        attribution: '© Google'
     },
-    satellite_esri: {
-        name: 'قمر صناعي (Esri)',
+    satellite_bing: {
+        name: 'قمر صناعي (Bing)',
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attribution: '© Esri'
+        attribution: '© Microsoft'
     },
-    hybrid: {
-        name: 'هجين',
-        url: 'https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png',
+    satellite_mapbox: {
+        name: 'قمر صناعي (عالي الجودة)',
+        url: 'https://a.tiles.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw',
+        attribution: '© Mapbox'
+    },
+    street: {
+        name: 'شارع (OpenStreetMap)',
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         attribution: '© OpenStreetMap contributors'
     }
 };
@@ -83,7 +89,7 @@ function convertAreaToLocalUnit(areaMeter, governorate) {
 const state = {
     map: null,
     currentLayer: null,
-    currentTileLayer: 'dark',
+    currentTileLayer: 'satellite_google',  // استخدم Google Satellite كـ default
     currentLand: null,
     drawingMode: false,
     drawingPoints: [],
@@ -212,7 +218,7 @@ function addMapLayerToggle() {
 
 // Toggle Map Layer
 function toggleTileLayer() {
-    // Cycle through layers: dark → satellite → satellite_esri → hybrid → dark
+    // Cycle through layers
     const layers = Object.keys(TILE_LAYERS);
     const currentIndex = layers.indexOf(state.currentTileLayer);
     const nextIndex = (currentIndex + 1) % layers.length;
@@ -224,11 +230,18 @@ function toggleTileLayer() {
             state.map.removeLayer(state.currentLayer);
         }
         
-        // Add new layer
-        state.currentLayer = L.tileLayer(TILE_LAYERS[newLayer].url, {
+        // Add new layer with subdomains support
+        const layerConfig = {
             attribution: TILE_LAYERS[newLayer].attribution,
             maxZoom: 22
-        }).addTo(state.map);
+        };
+        
+        // Add subdomains if available
+        if (TILE_LAYERS[newLayer].subdomains) {
+            layerConfig.subdomains = TILE_LAYERS[newLayer].subdomains;
+        }
+        
+        state.currentLayer = L.tileLayer(TILE_LAYERS[newLayer].url, layerConfig).addTo(state.map);
         
         // Bring marker layer back to top
         if (state.markerLayer) {
