@@ -738,18 +738,18 @@ function renderUploadedFiles() {
     container.innerHTML = '';
     
     if (state.uploadedFiles.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 10px;">لا توجد ملفات مرفوعة</p>';
+        container.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.5); padding: 10px;">لا توجد ملفات</p>';
         return;
     }
     
-    // Separate images and other files
+    // Separate images and other files - SHOW ONLY ONE OF EACH
     const images = state.uploadedFiles.filter(f => f.type && f.type.startsWith('image/'));
     const otherFiles = state.uploadedFiles.filter(f => !f.type || !f.type.startsWith('image/'));
     
-    // Display images as gallery
+    // Display only first image
     if (images.length > 0) {
         const imagesTitle = document.createElement('h4');
-        imagesTitle.innerHTML = '<i class="fas fa-images"></i> الصور';
+        imagesTitle.innerHTML = '<i class="fas fa-images"></i> الصورة';
         imagesTitle.style.cssText = 'color: white; margin-bottom: 10px; font-size: 13px; font-weight: 600;';
         container.appendChild(imagesTitle);
         
@@ -757,63 +757,104 @@ function renderUploadedFiles() {
         gallery.className = 'image-gallery';
         gallery.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-bottom: 15px;';
         
-        images.forEach((img, index) => {
-            const thumb = document.createElement('div');
-            thumb.style.cssText = `
-                position: relative;
-                cursor: pointer;
-                border-radius: 8px;
-                overflow: hidden;
-                background: rgba(255,255,255,0.1);
-                aspect-ratio: 1;
-                transition: all 0.2s ease;
-            `;
-            
-            const imgEl = document.createElement('img');
-            imgEl.src = img.path || img.url;
-            imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
-            
-            thumb.appendChild(imgEl);
-            thumb.addEventListener('click', () => openImageModal(images, index));
-            thumb.addEventListener('mouseover', () => {
-                thumb.style.transform = 'scale(1.05)';
-                thumb.style.boxShadow = '0 4px 16px rgba(255, 255, 255, 0.2)';
-            });
-            thumb.addEventListener('mouseout', () => {
-                thumb.style.transform = 'scale(1)';
-                thumb.style.boxShadow = 'none';
-            });
-            
-            gallery.appendChild(thumb);
+        // Show only FIRST image
+        const img = images[0];
+        const thumb = document.createElement('div');
+        thumb.style.cssText = `
+            position: relative;
+            cursor: pointer;
+            border-radius: 8px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.1);
+            aspect-ratio: 1;
+            transition: all 0.2s ease;
+        `;
+        
+        const imgEl = document.createElement('img');
+        imgEl.src = img.data || img.path || img.url;
+        imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+        imgEl.onerror = () => {
+            imgEl.style.background = '#666';
+            imgEl.textContent = '❌';
+        };
+        
+        thumb.appendChild(imgEl);
+        thumb.addEventListener('click', () => {
+            const url = img.data || img.path || img.url;
+            if (url) window.open(url, '_blank');
+        });
+        thumb.addEventListener('mouseover', () => {
+            thumb.style.transform = 'scale(1.05)';
+            thumb.style.boxShadow = '0 4px 16px rgba(255, 255, 255, 0.2)';
+        });
+        thumb.addEventListener('mouseout', () => {
+            thumb.style.transform = 'scale(1)';
+            thumb.style.boxShadow = 'none';
         });
         
+        gallery.appendChild(thumb);
         container.appendChild(gallery);
     }
     
-    // Display other files
+    // Display only first other file
     if (otherFiles.length > 0) {
         const filesTitle = document.createElement('h4');
-        filesTitle.innerHTML = '<i class="fas fa-file"></i> الملفات';
+        filesTitle.innerHTML = '<i class="fas fa-file"></i> الملف';
         filesTitle.style.cssText = 'color: white; margin-bottom: 10px; font-size: 13px; font-weight: 600;';
         container.appendChild(filesTitle);
         
-        otherFiles.forEach(file => {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item';
-            const isPdf = file.type === 'application/pdf';
-            
-            fileItem.innerHTML = `
-                <i class="fas ${isPdf ? 'fa-file-pdf' : 'fa-file'}" style="color: ${isPdf ? '#FF9500' : '#00D9FF'}; font-size: 20px;"></i>
-                <div class="file-info">
-                    <span class="file-name">${file.name || file.file_name}</span>
-                    <span class="file-size">${formatFileSize(file.size || 0)}</span>
-                </div>
-                <div class="file-actions">
-                    <button class="btn-download" onclick="downloadFile('${file.path}', '${(file.name || file.file_name).replace(/'/g, "\\'")}')"><i class="fas fa-download"></i></button>
-                </div>
-            `;
-            container.appendChild(fileItem);
+        const file = otherFiles[0];
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        fileItem.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        `;
+        
+        const fileName = file.name || file.file_name || 'ملف';
+        const isPdf = file.type === 'application/pdf' || fileName.endsWith('.pdf');
+        
+        const icon = document.createElement('i');
+        icon.className = `fas ${isPdf ? 'fa-file-pdf' : 'fa-file'}`;
+        icon.style.cssText = `color: ${isPdf ? '#FF9500' : '#00D9FF'}; font-size: 20px;`;
+        fileItem.appendChild(icon);
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = fileName;
+        nameSpan.style.cssText = 'color: white; font-size: 12px; flex: 1; cursor: pointer;';
+        nameSpan.addEventListener('click', () => {
+            const url = file.data || file.path || file.url;
+            if (url) window.open(url, '_blank');
         });
+        fileItem.appendChild(nameSpan);
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.innerHTML = '<i class="fas fa-trash" style="font-size: 12px;"></i>';
+        deleteBtn.style.cssText = `
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        `;
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const idx = state.uploadedFiles.indexOf(file);
+            if (idx > -1) {
+                state.uploadedFiles.splice(idx, 1);
+                renderUploadedFiles();
+            }
+        });
+        fileItem.appendChild(deleteBtn);
+        
+        container.appendChild(fileItem);
     }
 }
 
@@ -830,59 +871,6 @@ function openImageModal(images, index) {
     img.src = images[index].path || images[index].url;
     updateImageCounter();
     modal.classList.add('active');
-}
-
-// Render Saved Files from Database
-function renderSavedFiles(land) {
-    const section = document.getElementById('savedFilesSection');
-    const list = document.getElementById('savedFilesList');
-    
-    if (!land.files || land.files.length === 0) {
-        section.style.display = 'none';
-        return;
-    }
-    
-    section.style.display = 'block';
-    list.innerHTML = '';
-    
-    land.files.forEach((file, index) => {
-        const fileItem = document.createElement('div');
-        fileItem.className = 'file-item';
-        
-        // Get file type icon
-        const fileName = file.file_name || file.name || '';
-        const fileExt = fileName.split('.').pop().toLowerCase();
-        let iconClass = 'fas fa-file';
-        if (fileExt === 'pdf') iconClass = 'fas fa-file-pdf';
-        else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) iconClass = 'fas fa-image';
-        
-        fileItem.innerHTML = `
-            <i class="file-icon ${iconClass}"></i>
-            <div class="file-info">
-                <div class="file-name" title="${fileName}">${fileName}</div>
-                <div class="file-size">${formatFileSize(file.file_size || file.size || 0)}</div>
-            </div>
-            <div class="file-actions">
-                <button type="button" class="btn-download" title="تحميل" onclick="downloadFile(${file.id || index}, '${fileName}')">
-                    <i class="fas fa-download"></i>
-                </button>
-                <button type="button" class="btn-remove" title="حذف" onclick="deleteFileFromLand(${land.id}, ${file.id || index})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
-        
-        // Make file name clickable to open
-        const fileNameEl = fileItem.querySelector('.file-name');
-        fileNameEl.addEventListener('click', () => {
-            const fileId = file.id || index;
-            // استخدم API endpoint للفتح
-            const fileUrl = `${CONFIG.apiUrl}/files/${fileId}`;
-            window.open(fileUrl, '_blank');
-        });
-        
-        list.appendChild(fileItem);
-    });
 }
 
 // Format file size
@@ -996,15 +984,6 @@ function formatFileSize(bytes) {
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-function downloadFile(filePath, fileName) {
-    const link = document.createElement('a');
-    link.href = `/uploads/${filePath.split('/').pop()}`;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
 }
 
 // Save Land
@@ -1459,48 +1438,48 @@ function drawLandOnMap(land) {
         filesTitle.style.cssText = `
             font-size: 12px;
             font-weight: 700;
-            color: #333;
+            color: #3b82f6;
             padding: 8px 16px 4px;
             font-family: 'Cairo', sans-serif;
+            text-transform: uppercase;
         `;
         popupContainer.appendChild(filesTitle);
 
         const filesContainer = document.createElement('div');
         filesContainer.style.cssText = `
             padding: 8px 16px;
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
             gap: 8px;
         `;
 
         land.files.forEach(file => {
             const filePath = file.path || file.file_path || '';
+            const fileName = file.file_name || file.name || '';
             const isImage = filePath && /\.(jpg|jpeg|png|gif|webp)$/i.test(filePath);
+            
+            const fileItem = document.createElement('div');
+            fileItem.style.cssText = `
+                position: relative;
+                border-radius: 6px;
+                overflow: hidden;
+                background: #e5e5e5;
+                cursor: pointer;
+                transition: all 0.2s;
+            `;
+            
             if (isImage) {
                 const img = document.createElement('img');
                 img.src = filePath;
                 img.style.cssText = `
                     width: 60px;
                     height: 60px;
-                    border-radius: 6px;
-                    cursor: pointer;
                     object-fit: cover;
-                    border: 2px solid #ddd;
+                    display: block;
                 `;
-                img.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const images = land.files.filter(f => {
-                        const fpath = f.path || f.file_path || '';
-                        return /\.(jpg|jpeg|png|gif|webp)$/i.test(fpath);
-                    });
-                    const index = images.indexOf(file);
-                    openImageModal(images, index);
-                });
-                filesContainer.appendChild(img);
-            }
-        });
-
-        popupContainer.appendChild(filesContainer);
+                img.onerror = () => {
+                    img.style.display = 'none';
+                    const icon = document.createElement('div');\n                    icon.innerHTML = '<i class=\"fas fa-image\" style=\"font-size: 20px; color: #999;\"></i>';\n                    icon.style.cssText = 'display: flex; align-items: center; justify-content: center; width: 60px; height: 60px;';\n                    fileItem.appendChild(icon);\n                };\n                fileItem.appendChild(img);\n                fileItem.addEventListener('click', (e) => {\n                    e.stopPropagation();\n                    window.open(filePath, '_blank');\n                });\n                fileItem.addEventListener('mouseover', () => fileItem.style.transform = 'scale(1.05)');\n                fileItem.addEventListener('mouseout', () => fileItem.style.transform = 'scale(1)');\n            } else {\n                // Non-image file\n                const icon = document.createElement('div');\n                const ext = fileName.split('.').pop().toLowerCase();\n                const isFile = ext === 'pdf';\n                icon.innerHTML = `<i class=\"fas ${isFile ? 'fa-file-pdf' : 'fa-file'}\" style=\"font-size: 20px; color: ${isFile ? '#FF9500' : '#3b82f6'};\"></i>`;\n                icon.style.cssText = 'display: flex; align-items: center; justify-content: center; width: 60px; height: 60px;';\n                fileItem.appendChild(icon);\n                fileItem.title = fileName;\n                fileItem.addEventListener('click', (e) => {\n                    e.stopPropagation();\n                    window.open(filePath, '_blank');\n                });\n                fileItem.addEventListener('mouseover', () => fileItem.style.transform = 'scale(1.05)');\n                fileItem.addEventListener('mouseout', () => fileItem.style.transform = 'scale(1)');\n            }\n            \n            filesContainer.appendChild(fileItem);\n        });\n\n        popupContainer.appendChild(filesContainer);
     }
 
     // Action buttons
@@ -1662,9 +1641,6 @@ function viewLandDetails(landId) {
 
     // Hide file upload area when viewing existing land
     document.getElementById('fileUploadArea').style.display = 'none';
-    
-    // Show saved files if they exist
-    renderSavedFiles(land);
     
     // Update submit button text
     const submitBtn = document.querySelector('#landForm button[type="submit"]');
