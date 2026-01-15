@@ -1232,13 +1232,26 @@ async function uploadFilesForLand(landId, uploadedFiles) {
         console.log(`📁 جاري رفع ${uploadedFiles.length} ملف(ات)...`);
         
         for (const file of uploadedFiles) {
+            // Skip files that are already in database (have id property)
+            if (file.id) {
+                console.log(`⏭️ تجاوز الملف المحفوظ: ${file.name}`);
+                continue;
+            }
+
             const formData = new FormData();
             
             try {
-                // Convert base64 to Blob if it's stored as base64
-                if (typeof file === 'object' && file.content) {
-                    // File with content in base64
-                    let base64Data = file.content;
+                let fileName = file.name;
+                let fileData = null;
+
+                // Handle different file object formats
+                if (file instanceof File) {
+                    // Native File object
+                    formData.append('files', file);
+                    console.log(`📤 إرسال ملف File: ${file.name}`);
+                } else if (typeof file === 'object' && (file.content || file.data)) {
+                    // File with base64 content (file.content from database or file.data from handleFileSelect)
+                    let base64Data = file.content || file.data;
                     if (base64Data.includes(',')) {
                         base64Data = base64Data.split(',')[1];
                     }
@@ -1247,14 +1260,13 @@ async function uploadFilesForLand(landId, uploadedFiles) {
                     for (let i = 0; i < binaryString.length; i++) {
                         bytes[i] = binaryString.charCodeAt(i);
                     }
-                    const blob = new Blob([bytes], { type: file.type || 'application/octet-stream' });
-                    formData.append('files', blob, file.name || `file_${Date.now()}`);
-                    console.log(`📤 إرسال ملف base64: ${file.name}`);
-                } else if (file instanceof File) {
-                    formData.append('files', file);
-                    console.log(`📤 إرسال ملف: ${file.name}`);
+                    const mimeType = file.type || 'application/octet-stream';
+                    const blob = new Blob([bytes], { type: mimeType });
+                    formData.append('files', blob, fileName);
+                    console.log(`📤 إرسال ملف base64: ${fileName} (${mimeType})`);
                 } else {
                     console.warn('⚠️ ملف غير معروف:', file);
+                    console.log('📋 خصائص الملف:', Object.keys(file));
                     continue;
                 }
                 
