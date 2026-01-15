@@ -1,6 +1,6 @@
 // 🔧 Configuration File
 
 const API_CONFIG = {
-    // ✅ استخدم ngrok للـ GitHub Pages
-    apiUrl: 'https://ca60bccdadb0.ngrok-free.app/api'
+    // ✅ استخدم localhost للتطوير المحلي
+    apiUrl: 'http://localhost:3000/api'
 };

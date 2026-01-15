@@ -326,7 +326,7 @@ app.post('/api/lands/:id/files', upload.array('files', 10), async (req, res) => 
 // Get file (download/view)
 app.get('/api/files/:id', async (req, res) => {
     try {
-        const [files] = await pool.query('SELECT file_path, file_name FROM land_files WHERE id = ?', [req.params.id]);
+        const [files] = await pool.query('SELECT file_path, file_name, file_type FROM land_files WHERE id = ?', [req.params.id]);
         
         if (files.length === 0) {
             console.warn(`⚠️ File not found: ${req.params.id}`);
@@ -335,8 +335,9 @@ app.get('/api/files/:id', async (req, res) => {
         
         const filePath = files[0].file_path;
         const fileName = files[0].file_name;
+        const fileType = files[0].file_type;
         
-        console.log(`📥 Accessing file: ${filePath}`);
+        console.log(`📥 Accessing file: ${filePath}, Type: ${fileType}`);
         
         // Check if file exists
         try {
@@ -346,18 +347,24 @@ app.get('/api/files/:id', async (req, res) => {
             return res.status(404).json({ error: 'الملف غير موجود في النظام' });
         }
         
-        // For images and PDFs, stream the file; for others, download
+        // For images and PDFs, stream the file for viewing
         const ext = fileName.split('.').pop().toLowerCase();
         const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
         const isPdf = ext === 'pdf';
         
-        if (isImage || isPdf) {
-            // Stream file for viewing
-            res.sendFile(path.resolve(filePath), {
-                headers: {
-                    'Cache-Control': 'public, max-age=3600'
-                }
-            });
+        if (isImage) {
+            // Serve image inline with proper headers
+            res.setHeader('Content-Type', fileType || 'image/jpeg');
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.sendFile(path.resolve(filePath));
+        } else if (isPdf) {
+            // Serve PDF inline
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'inline; filename=' + fileName);
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.sendFile(path.resolve(filePath));
         } else {
             // Download for other files
             res.download(filePath, fileName);
@@ -394,22 +401,7 @@ app.delete('/api/files/:id', async (req, res) => {
     }
 });
 
-// Download file
-app.get('/api/files/:id', async (req, res) => {
-    try {
-        const [files] = await pool.query('SELECT file_path FROM land_files WHERE id = ?', [req.params.id]);
-        
-        if (files.length === 0) {
-            return res.status(404).json({ error: 'الملف غير موجود' });
-        }
-        
-        const filePath = files[0].file_path;
-        res.download(filePath);
-    } catch (error) {
-        console.error('Error downloading file:', error);
-        res.status(500).json({ error: 'فشل في تحميل الملف' });
-    }
-});
+
 
 // Delete specific file for a land
 app.delete('/api/lands/:landId/files/:fileId', async (req, res) => {

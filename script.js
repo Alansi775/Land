@@ -805,9 +805,20 @@ function renderUploadedFiles() {
         const imageSrc = img.data || 
                          (img.id ? `${CONFIG.apiUrl}/files/${img.id}` : '') ||
                          img.url || '';
+        
+        console.log(`🖼️ Loading image: ${img.file_name || img.name || 'Unknown'} (ID: ${img.id}), URL: ${imageSrc}`);
+        console.log('📊 Image object:', img);
+        
         imgEl.src = imageSrc;
         imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
-        imgEl.onerror = () => {
+        imgEl.crossOrigin = 'anonymous';
+        
+        imgEl.onload = () => {
+            console.log(`✅ Image loaded successfully: ${img.file_name || img.name || 'Unknown'}`);
+        };
+        
+        imgEl.onerror = (e) => {
+            console.error(`❌ Image failed to load: ${imageSrc}`, e);
             thumb.style.background = '#666';
             thumb.innerHTML = '<i class="fas fa-image" style="font-size: 30px; color: #999; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"></i>';
         };
@@ -1035,6 +1046,7 @@ function viewFileInModal(file) {
     const fileType = file.type || file.file_type || '';
     
     if (!fileUrl) {
+        console.error('❌ No file URL available:', file);
         showNotification('❌ لا يمكن فتح الملف', 'error');
         return;
     }
@@ -1048,7 +1060,8 @@ function viewFileInModal(file) {
     const isImage = (fileType && fileType.startsWith('image/')) || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
     const isPdf = fileType === 'application/pdf' || fileName.endsWith('.pdf');
     
-    console.log(`📂 Opening file: ${fileName}, URL: ${fileUrl}, isImage: ${isImage}, isPdf: ${isPdf}`);
+    console.log(`📂 Opening file: ${fileName}, URL: ${fileUrl}, isImage: ${isImage}, isPdf: ${isPdf}, fileType: ${fileType}`);
+    console.log('📋 File object:', file);
     
     // Reset
     image.style.display = 'none';
@@ -1064,8 +1077,11 @@ function viewFileInModal(file) {
     
     // Show appropriate viewer
     if (isImage) {
+        image.crossOrigin = 'anonymous';
         image.src = fileUrl;
         image.style.display = 'block';
+        image.onload = () => console.log(`✅ Image modal loaded: ${fileName}`);
+        image.onerror = () => console.error(`❌ Image modal failed: ${fileUrl}`);
     } else if (isPdf) {
         pdf.src = fileUrl;
         pdf.style.display = 'block';
