@@ -323,7 +323,7 @@ app.post('/api/lands/:id/files', upload.array('files', 10), async (req, res) => 
     }
 });
 
-// Get file (download)
+// Get file (download/view)
 app.get('/api/files/:id', async (req, res) => {
     try {
         const [files] = await pool.query('SELECT file_path, file_name FROM land_files WHERE id = ?', [req.params.id]);
@@ -336,7 +336,7 @@ app.get('/api/files/:id', async (req, res) => {
         const filePath = files[0].file_path;
         const fileName = files[0].file_name;
         
-        console.log(`📥 Downloading file: ${filePath}`);
+        console.log(`📥 Accessing file: ${filePath}`);
         
         // Check if file exists
         try {
@@ -346,10 +346,24 @@ app.get('/api/files/:id', async (req, res) => {
             return res.status(404).json({ error: 'الملف غير موجود في النظام' });
         }
         
-        // Send file
-        res.download(filePath, fileName);
+        // For images and PDFs, stream the file; for others, download
+        const ext = fileName.split('.').pop().toLowerCase();
+        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
+        const isPdf = ext === 'pdf';
+        
+        if (isImage || isPdf) {
+            // Stream file for viewing
+            res.sendFile(path.resolve(filePath), {
+                headers: {
+                    'Cache-Control': 'public, max-age=3600'
+                }
+            });
+        } else {
+            // Download for other files
+            res.download(filePath, fileName);
+        }
     } catch (error) {
-        console.error('❌ Error downloading file:', error);
+        console.error('❌ Error accessing file:', error);
         res.status(500).json({ error: 'خطأ في تحميل الملف' });
     }
 });
