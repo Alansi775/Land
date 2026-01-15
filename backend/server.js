@@ -286,17 +286,25 @@ app.post('/api/lands/:id/files', upload.array('files', 10), async (req, res) => 
         const landId = req.params.id;
         const files = req.files;
         
+        console.log(`📁 طلب رفع ملفات للأرض ${landId}`);
+        console.log(`📊 عدد الملفات: ${files ? files.length : 0}`);
+        console.log(`📋 الملفات:`, files);
+        
         if (!files || files.length === 0) {
+            console.warn('⚠️ لم يتم استقبال أي ملفات');
             return res.status(400).json({ error: 'لم يتم رفع أي ملفات' });
         }
         
         const fileRecords = [];
         
         for (const file of files) {
+            console.log(`💾 حفظ الملف: ${file.originalname} (${file.size} bytes)`);
             const [result] = await pool.query(`
                 INSERT INTO land_files (land_id, file_name, file_path, file_size, file_type)
                 VALUES (?, ?, ?, ?, ?)
             `, [landId, file.originalname, file.path, file.size, file.mimetype]);
+            
+            console.log(`✅ تم حفظ الملف بـ ID: ${result.insertId}`);
             
             fileRecords.push({
                 id: result.insertId,
@@ -307,10 +315,11 @@ app.post('/api/lands/:id/files', upload.array('files', 10), async (req, res) => 
             });
         }
         
+        console.log(`🎉 تم رفع جميع الملفات بنجاح: ${fileRecords.length}`);
         res.json({ message: 'تم رفع الملفات بنجاح', files: fileRecords });
     } catch (error) {
-        console.error('Error uploading files:', error);
-        res.status(500).json({ error: 'فشل في رفع الملفات' });
+        console.error('❌ خطأ في رفع الملفات:', error);
+        res.status(500).json({ error: 'فشل في رفع الملفات', details: error.message });
     }
 });
 
