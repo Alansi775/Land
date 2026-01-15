@@ -9,19 +9,18 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CORS Middleware - MUST be first middleware
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, ngrok-skip-browser-warning');
-    
-    // Handle preflight
-    if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
-    } else {
-        next();
-    }
-});
+// Enable CORS with proper configuration
+app.use(cors({
+    origin: '*',
+    credentials: false,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'X-Requested-With'],
+    optionsSuccessStatus: 200,
+    maxAge: 3600
+}));
+
+// Explicit preflight handling
+app.options('*', cors());
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static('public'));

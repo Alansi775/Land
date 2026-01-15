@@ -12,6 +12,6 @@ const API_CONFIG = (() => {
     
     // Production with ngrok
     return {
-        apiUrl: 'https://7ff6fb80365b.ngrok-free.app/api'
+        apiUrl: 'https://cf5d47f72fb4.ngrok-free.app/api'
     };
 })();
