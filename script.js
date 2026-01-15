@@ -820,16 +820,28 @@ function renderUploadedFiles() {
             console.log(`✅ Image loaded successfully: ${img.file_name || img.name || 'Unknown'}`);
         };
         
+        let retryCount = 0;
         imgEl.onerror = (e) => {
             console.error(`❌ Image failed to load: ${imageSrc}`, e);
             console.error('🔍 Image fetch error details:', {
                 src: imgEl.src,
                 complete: imgEl.complete,
                 naturalWidth: imgEl.naturalWidth,
-                naturalHeight: imgEl.naturalHeight
+                naturalHeight: imgEl.naturalHeight,
+                retryCount: retryCount
             });
-            thumb.style.background = '#666';
-            thumb.innerHTML = '<i class="fas fa-image" style="font-size: 30px; color: #999; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"></i>';
+            
+            // Retry once with different timestamp
+            if (retryCount < 1) {
+                retryCount++;
+                console.log(`🔄 Retrying image load... (attempt ${retryCount})`);
+                setTimeout(() => {
+                    imgEl.src = `${CONFIG.apiUrl}/files/${img.id}?v=${Date.now()}`;
+                }, 500);
+            } else {
+                thumb.style.background = '#666';
+                thumb.innerHTML = '<i class="fas fa-image" style="font-size: 30px; color: #999; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"></i>';
+            }
         };
         
         thumb.appendChild(imgEl);
