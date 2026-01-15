@@ -1,19 +1,21 @@
-# 🗺️ Land Registry System - نظام إدارة الأراضي
+# Land Registry System
 
-تطبيق ويب حديث لإدارة وتسجيل الأراضي مع خرائط تفاعلية، مبني بـ Leaflet.js و Node.js backend.
+A comprehensive property and land management platform designed to help people organize and manage their real estate and land holdings efficiently. Know exactly where your properties are located, who owns them, and access all the information you need instantly.
 
-## ✨ المميزات
+## Features
 
-- 🗺️ خريطة تفاعلية مع Leaflet.js
-- 📍 رسم وتحديد حدود الأراضي
-- 💾 تخزين معلومات الأرض (الاسم، المساحة، الموقع، بيانات الحائز)
-- 📱 واجهة مستخدم استجابية بتصميم داكن
-- 🌐 تحديثات فورية
-- 🔐 API Backend مع قاعدة بيانات MySQL
+- Interactive map with Leaflet.js for visualizing properties
+- Draw and define property boundaries with precision
+- Store comprehensive property information (name, area, location, owner details)
+- Responsive user interface with dark mode design
+- Real-time updates and instant data synchronization
+- Secure API backend with MySQL database
+- Complete property search and filtering capabilities
+- Property history and record management
 
-## 🚀 البدء السريع
+## Quick Start
 
-### تشغيل Backend
+### Backend Setup
 
 ```bash
 cd backend
@@ -21,124 +23,121 @@ npm install
 npm start
 ```
 
-Backend يعمل على `http://localhost:3000/api`
+The backend API server will start and be ready to handle requests.
 
-### تشغيل Frontend
+### Frontend Setup
 
 ```bash
 cd frontend
-# افتح index.html في المتصفح
-# أو استخدم خادم محلي:
+# Open index.html in your browser
+# Or use a local server:
 python -m http.server 8000
 ```
 
-زر `http://localhost:8000`
+Then visit your local server in your browser.
 
-## 📦 النشر
+## Deployment
 
-### استخدام ngrok للـ Backend عن بعد
+### Using ngrok for Remote Backend Access
 
-1. **تثبيت ngrok:**
+1. **Install ngrok:**
 ```bash
 brew install ngrok/ngrok/ngrok
 ```
 
-2. **تشغيل ngrok tunnel:**
+2. **Start ngrok tunnel:**
 ```bash
 ngrok http 3000
 ```
 
-3. **تحديث config.js بـ ngrok URL:**
+3. **Update config.js with your ngrok URL:**
 ```javascript
 const API_CONFIG = {
     apiUrl: 'https://your-ngrok-url.ngrok.io/api'
 };
 ```
 
-4. **رفع على GitHub:**
+4. **Push to GitHub:**
 ```bash
 git add .
-git commit -m "Update ngrok URL"
+git commit -m "Update API configuration"
 git push
 ```
 
-### نشر على GitHub Pages
+### Deploy to GitHub Pages
 
-1. فعّل GitHub Pages في إعدادات الـ repo
-2. اختر `main` branch كـ source
-3. الوصول للموقع: `https://USERNAME.github.io/Land/`
+1. Enable GitHub Pages in your repository settings
+2. Select `main` branch as the source
+3. Access your site at: `https://USERNAME.github.io/Land/`
 
-## 🛠️ التقنيات المستخدمة
+## Technologies Used
 
 - **Frontend:** HTML5, CSS3, JavaScript (Vanilla)
 - **Backend:** Node.js, Express.js
 - **Database:** MySQL
 - **Mapping:** Leaflet.js
-- **Icons:** Font Awesome 6.4.0
-- **RTL/Arabic:** دعم كامل للعربية
+- **UI Components:** Font Awesome 6.4.0
 
-## 📱 المتصفحات المدعومة
+## Supported Browsers
 
-- Chrome/Edge (الإصدار الأخير)
-- Firefox (الإصدار الأخير)
-- Safari (الإصدار الأخير)
+- Chrome/Edge (latest version)
+- Firefox (latest version)
+- Safari (latest version)
 
-## هيكل المشروع
+## Project Structure
 
 ```
 land/
-├── frontend/          # الواجهة الأمامية
-│   ├── index.html    # صفحة HTML
-│   ├── styles.css    # أنماط CSS
-│   └── script.js     # سكريبتات JavaScript
-├── backend/          # الخلفية (API)
-│   ├── server.js     # ملف الخادم الرئيسي
-│   ├── package.json  # المكتبات المطلوبة
-│   └── .env          # متغيرات البيئة
-└── database/         # قاعدة البيانات
-    └── schema.sql    # مخطط قاعدة البيانات
+├── frontend/          # Frontend application
+│   ├── index.html    # Main HTML page
+│   ├── styles.css    # Stylesheet
+│   └── script.js     # JavaScript logic
+├── backend/          # API backend
+│   ├── server.js     # Main server file
+│   ├── package.json  # Dependencies
+│   └── .env          # Environment variables
+└── database/         # Database files
+    └── schema.sql    # Database schema
 ```
 
-## التثبيت والإعداد
+## Installation and Setup
 
-### 1. إعداد قاعدة البيانات
+### 1. Database Setup
 
 ```bash
 mysql -u root -p < database/schema.sql
 ```
 
-أو قم بتشغيل الأوامر الموجودة في `database/schema.sql` يدويًا في MySQL.
+Or manually run the SQL commands from `database/schema.sql` in your MySQL client.
 
-### 2. تثبيت المكتبات
+### 2. Install Dependencies
 
 ```bash
 cd backend
 npm install
 ```
 
-### 3. تشغيل الخادم
+### 3. Start the Server
 
 ```bash
 npm start
 ```
 
-أو للتطوير مع إعادة التحميل التلقائي:
+For development with automatic reload:
 
 ```bash
 npm run dev
 ```
 
-الخادم سيعمل على: `http://localhost:5000`
+### 4. Open the Frontend
 
-### 4. فتح الواجهة الأمامية
+1. Navigate to the `frontend` folder
+2. Open `index.html` in your browser
+3. Or use a local server (like Live Server)
 
-1. انتقل إلى مجلد `frontend`
-2. افتح ملف `index.html` في المتصفح
-3. أو استخدم خادم محلي (مثل Live Server)
+## Environment Variables
 
-## متغيرات البيئة
-
-تم تعديل ملف `.env` بالإعدادات التالية:
+Configure your `.env` file with the following settings:
 
 ```
 PORT=5000
@@ -151,51 +150,54 @@ DB_NAME=myapp
 ## API Endpoints
 
 ### GET /
-اختبار الاتصال بالخادم
+Test server connectivity
 
 ### GET /api/data
-الحصول على جميع العناصر
+Retrieve all properties
 
 ### POST /api/items
-إضافة عنصر جديد
+Add a new property
 ```json
 {
-    "title": "العنوان",
-    "description": "الوصف"
+    "title": "Property Name",
+    "description": "Property Description"
 }
 ```
 
 ### POST /api/contact
-حفظ رسالة تواصل
+Submit a contact message
 ```json
 {
-    "name": "الاسم",
-    "email": "البريد@مثال.com",
-    "message": "الرسالة"
+    "name": "Your Name",
+    "email": "your.email@example.com",
+    "message": "Your Message"
 }
 ```
 
-## الميزات
+## Key Features
 
-✓ واجهة مستخدم عربية
-✓ اتصال بقاعدة بيانات MySQL
-✓ API RESTful
-✓ معالجة الأخطاء
-✓ تصميم استجابي
+- Property management and organization
+- Real-time data synchronization
+- MySQL database integration
+- RESTful API
+- Error handling and validation
+- Responsive design
 
-## الملاحظات
+## Important Notes
 
-- تأكد من تشغيل MySQL قبل بدء الخادم
-- استخدم كلمة المرور `root` (أو غيّر `.env`)
-- تأكد من عدم حجب المنافذ 5000 أو 3306
+- Ensure MySQL is running before starting the server
+- Update credentials in `.env` file as needed
+- Make sure ports 5000 and 3306 are available
+- Backup your database regularly
 
-## المساعدة
+## Troubleshooting
 
-في حالة حدوث مشاكل، تحقق من:
-1. هل MySQL قيد التشغيل؟
-2. هل تم تثبيت جميع المكتبات بنجاح؟
-3. هل القاعدة موجودة وتم إنشاء الجداول؟
+If you encounter issues:
+1. Verify that MySQL is running
+2. Check that all dependencies are installed successfully
+3. Ensure the database exists and tables are created
+4. Review error logs for detailed information
 
 ---
 
-تم إنشاء المشروع بنجاح! 🎉
+Property Management Made Simple
