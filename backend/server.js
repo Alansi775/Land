@@ -340,6 +340,23 @@ app.delete('/api/files/:id', async (req, res) => {
     }
 });
 
+// Download file
+app.get('/api/files/:id', async (req, res) => {
+    try {
+        const [files] = await pool.query('SELECT file_path FROM land_files WHERE id = ?', [req.params.id]);
+        
+        if (files.length === 0) {
+            return res.status(404).json({ error: 'الملف غير موجود' });
+        }
+        
+        const filePath = files[0].file_path;
+        res.download(filePath);
+    } catch (error) {
+        console.error('Error downloading file:', error);
+        res.status(500).json({ error: 'فشل في تحميل الملف' });
+    }
+});
+
 // Delete specific file for a land
 app.delete('/api/lands/:landId/files/:fileId', async (req, res) => {
     try {

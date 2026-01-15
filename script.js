@@ -874,7 +874,12 @@ function renderSavedFiles(land) {
         
         // Make file name clickable to open
         const fileNameEl = fileItem.querySelector('.file-name');
-        fileNameEl.addEventListener('click', () => openFile(file.file_path || file.path, fileName));
+        fileNameEl.addEventListener('click', () => {
+            const fileId = file.id || index;
+            // استخدم API endpoint للفتح
+            const fileUrl = `${CONFIG.apiUrl}/files/${fileId}`;
+            window.open(fileUrl, '_blank');
+        });
         
         list.appendChild(fileItem);
     });
@@ -891,9 +896,10 @@ function formatFileSize(bytes) {
 
 // Download file
 function downloadFile(fileId, fileName) {
-    const filePath = fileName; // في الحقيقة سنحتاج لـ file path من database
+    // المسار من الـ database يحتوي على `uploads/filename`
+    const filePath = `${CONFIG.apiUrl}/files/${fileId}`;
     const a = document.createElement('a');
-    a.href = `/uploads/${fileName}`;
+    a.href = filePath;
     a.download = fileName;
     document.body.appendChild(a);
     a.click();
@@ -1218,38 +1224,60 @@ async function saveLandToServer(landData) {
 // Upload Files for Land
 async function uploadFilesForLand(landId, uploadedFiles) {
     try {
+        if (!uploadedFiles || uploadedFiles.length === 0) {
+            console.log('لا توجد ملفات للرفع');
+            return;
+        }
+
+        console.log(`📁 جاري رفع ${uploadedFiles.length} ملف(ات)...`);
+        
         for (const file of uploadedFiles) {
             const formData = new FormData();
             
-            // Convert base64 to Blob if needed
-            if (typeof file === 'object' && file.content) {
-                // File with content in base64
-                const binaryString = atob(file.content.split(',')[1]);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
+            try {
+                // Convert base64 to Blob if it's stored as base64
+                if (typeof file === 'object' && file.content) {
+                    // File with content in base64
+                    let base64Data = file.content;
+                    if (base64Data.includes(',')) {
+                        base64Data = base64Data.split(',')[1];
+                    }
+                    const binaryString = atob(base64Data);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    const blob = new Blob([bytes], { type: file.type || 'application/octet-stream' });
+                    formData.append('files', blob, file.name || `file_${Date.now()}`);
+                    console.log(`📤 إرسال ملف base64: ${file.name}`);
+                } else if (file instanceof File) {
+                    formData.append('files', file);
+                    console.log(`📤 إرسال ملف: ${file.name}`);
+                } else {
+                    console.warn('⚠️ ملف غير معروف:', file);
+                    continue;
                 }
-                const blob = new Blob([bytes], { type: file.type });
-                formData.append('files', blob, file.name);
-            } else if (file instanceof File) {
-                formData.append('files', file);
-            }
-            
-            const response = await fetch(`${CONFIG.apiUrl}/lands/${landId}/files`, {
-                method: 'POST',
-                headers: {
-                    'ngrok-skip-browser-warning': 'true'
-                },
-                body: formData
-            });
-            
-            if (response.ok) {
-                console.log(`✅ تم رفع الملف: ${file.name}`);
-            } else {
-                console.error(`❌ خطأ في رفع الملف: ${file.name}`);
+                
+                const response = await fetch(`${CONFIG.apiUrl}/lands/${landId}/files`, {
+                    method: 'POST',
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log(`✅ تم رفع الملف بنجاح:`, result);
+                } else {
+                    const error = await response.text();
+                    console.error(`❌ خطأ في رفع الملف (${response.status}):`, error);
+                }
+            } catch (fileError) {
+                console.error(`❌ خطأ في معالجة الملف:`, fileError);
             }
         }
-        console.log('✅ تم رفع جميع الملفات بنجاح');
+        console.log('✅ اكتمل رفع الملفات');
     } catch (error) {
         console.error('❌ خطأ في رفع الملفات:', error);
     }
