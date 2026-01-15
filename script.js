@@ -1495,15 +1495,10 @@ function drawLandOnMap(land) {
             const fileType = file.file_type || file.type || '';
             const isImage = fileType.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
             
-            // Build proper URL for file access
-            let fileUrl = '';
-            if (file.id) {
-                // If has ID, use API endpoint
-                fileUrl = `${CONFIG.apiUrl}/files/${file.id}`;
-            } else if (file.path || file.file_path) {
-                // If has path, construct URL
-                fileUrl = `${CONFIG.apiUrl}/files/${file.id}` || filePath;
-            }
+            // Build proper URL for file access - ALWAYS use API endpoint if file has ID
+            const fileUrl = file.id ? `${CONFIG.apiUrl}/files/${file.id}` : filePath;
+            
+            console.log('📁 Popup file:', fileName, 'ID:', file.id, 'URL:', fileUrl);
             
             const fileItem = document.createElement('div');
             fileItem.style.cssText = `
