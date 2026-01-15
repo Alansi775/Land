@@ -814,16 +814,79 @@ function renderUploadedFiles() {
         };
         
         thumb.appendChild(imgEl);
+        
+        // Add delete button overlay
+        const deleteOverlay = document.createElement('div');
+        deleteOverlay.style.cssText = `
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        `;
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.innerHTML = '<i class="fas fa-trash" style="font-size: 12px;"></i>';
+        deleteBtn.style.cssText = `
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        `;
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (img.id) {
+                deleteFileFromLand(state.selectedLandId, img.id);
+            } else {
+                const idx = state.uploadedFiles.indexOf(img);
+                if (idx > -1) {
+                    state.uploadedFiles.splice(idx, 1);
+                    renderUploadedFiles();
+                }
+            }
+        });
+        deleteOverlay.appendChild(deleteBtn);
+        
+        const downloadBtn = document.createElement('button');
+        downloadBtn.type = 'button';
+        downloadBtn.innerHTML = '<i class="fas fa-download" style="font-size: 12px;"></i>';
+        downloadBtn.style.cssText = `
+            background: #00D9FF;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        `;
+        downloadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (img.id) {
+                downloadFile(img.id, img.name || img.file_name || 'صورة');
+            }
+        });
+        deleteOverlay.appendChild(downloadBtn);
+        
+        thumb.appendChild(deleteOverlay);
+        
         thumb.addEventListener('click', () => {
-            window.open(imageSrc, '_blank');
+            viewFileInModal(img);
         });
         thumb.addEventListener('mouseover', () => {
             thumb.style.transform = 'scale(1.05)';
             thumb.style.boxShadow = '0 4px 16px rgba(255, 255, 255, 0.2)';
+            deleteOverlay.style.opacity = '1';
         });
         thumb.addEventListener('mouseout', () => {
             thumb.style.transform = 'scale(1)';
             thumb.style.boxShadow = 'none';
+            deleteOverlay.style.opacity = '0';
         });
         
         gallery.appendChild(thumb);
@@ -906,10 +969,16 @@ function renderUploadedFiles() {
         `;
         deleteBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const idx = state.uploadedFiles.indexOf(file);
-            if (idx > -1) {
-                state.uploadedFiles.splice(idx, 1);
-                renderUploadedFiles();
+            // If file has ID (from database), delete from server
+            if (file.id) {
+                deleteFileFromLand(state.selectedLandId, file.id);
+            } else {
+                // If no ID (local file), just remove from state
+                const idx = state.uploadedFiles.indexOf(file);
+                if (idx > -1) {
+                    state.uploadedFiles.splice(idx, 1);
+                    renderUploadedFiles();
+                }
             }
         });
         fileItem.appendChild(deleteBtn);
@@ -1022,6 +1091,8 @@ async function deleteFileFromLand(landId, fileId) {
     if (!confirm('هل تريد حذف هذا الملف؟')) return;
     
     try {
+        console.log(`🗑️ Deleting file ${fileId} from land ${landId}`);
+        
         const response = await fetch(`${CONFIG.apiUrl}/lands/${landId}/files/${fileId}`, {
             method: 'DELETE',
             headers: {
@@ -1031,17 +1102,37 @@ async function deleteFileFromLand(landId, fileId) {
         
         if (response.ok) {
             showNotification('✅ تم حذف الملف بنجاح', 'success');
-            // إعادة تحميل تفاصيل الأرض
-            loadLandsFromServer();
+            
+            // Remove from local state immediately
+            state.uploadedFiles = state.uploadedFiles.filter(f => f.id !== fileId);
+            
+            // Reload lands from server
+            await loadLandsFromServer();
+            
+            // Refresh UI
             const land = state.lands.find(l => l.id === landId);
             if (land) {
-                viewLandDetails(landId);
+                // Update local state with fresh data
+                state.uploadedFiles = land.files || [];
+                
+                // Re-render UI
+                renderUploadedFiles();
+                
+                // If details panel is open, refresh it
+                if (state.selectedLandId === landId) {
+                    viewLandDetails(landId);
+                    // Refresh map popup
+                    state.map.closePopup();
+                    drawLandOnMap(land);
+                }
             }
+            console.log('✅ File deleted and UI refreshed');
         } else {
-            showNotification('❌ خطأ في حذف الملف', 'error');
+            const error = await response.json();
+            showNotification('❌ خطأ في حذف الملف: ' + (error.error || 'فشل الحذف'), 'error');
         }
     } catch (error) {
-        console.error('خطأ:', error);
+        console.error('❌ خطأ في حذف الملف:', error);
         showNotification('❌ خطأ في الاتصال بالخادم', 'error');
     }
 }
