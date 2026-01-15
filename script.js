@@ -812,37 +812,24 @@ function renderUploadedFiles() {
         console.log('📊 Image object:', img);
         console.log('⚙️ CONFIG.apiUrl:', CONFIG.apiUrl);
         
-        imgEl.src = imageSrc;
-        imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
-        imgEl.crossOrigin = 'anonymous';
-        
-        imgEl.onload = () => {
-            console.log(`✅ Image loaded successfully: ${img.file_name || img.name || 'Unknown'}`);
-        };
-        
-        let retryCount = 0;
-        imgEl.onerror = (e) => {
-            console.error(`❌ Image failed to load: ${imageSrc}`, e);
-            console.error('🔍 Image fetch error details:', {
-                src: imgEl.src,
-                complete: imgEl.complete,
-                naturalWidth: imgEl.naturalWidth,
-                naturalHeight: imgEl.naturalHeight,
-                retryCount: retryCount
-            });
-            
-            // Retry once with different timestamp
-            if (retryCount < 1) {
-                retryCount++;
-                console.log(`🔄 Retrying image load... (attempt ${retryCount})`);
-                setTimeout(() => {
-                    imgEl.src = `${CONFIG.apiUrl}/files/${img.id}?v=${Date.now()}`;
-                }, 500);
-            } else {
-                thumb.style.background = '#666';
-                thumb.innerHTML = '<i class="fas fa-image" style="font-size: 30px; color: #999; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"></i>';
+        // Load image as Blob for better CORS handling
+        fetch(imageSrc, {
+            headers: {
+                'ngrok-skip-browser-warning': 'true'
             }
-        };
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const blobUrl = URL.createObjectURL(blob);
+            imgEl.src = blobUrl;
+            imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+            console.log(`✅ Image loaded successfully: ${img.file_name || img.name || 'Unknown'}`);
+        })
+        .catch(error => {
+            console.error(`❌ Image failed to load: ${imageSrc}`, error);
+            thumb.style.background = '#666';
+            thumb.innerHTML = '<i class="fas fa-image" style="font-size: 30px; color: #999; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"></i>';
+        });
         
         thumb.appendChild(imgEl);
         
@@ -1100,14 +1087,41 @@ function viewFileInModal(file) {
     
     // Show appropriate viewer
     if (isImage) {
-        image.crossOrigin = 'anonymous';
-        image.src = fileUrl;
-        image.style.display = 'block';
-        image.onload = () => console.log(`✅ Image modal loaded: ${fileName}`);
-        image.onerror = () => console.error(`❌ Image modal failed: ${fileUrl}`);
+        // Load image as blob for better CORS handling
+        fetch(fileUrl, {
+            headers: {
+                'ngrok-skip-browser-warning': 'true'
+            }
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const blobUrl = URL.createObjectURL(blob);
+            image.src = blobUrl;
+            image.style.display = 'block';
+            console.log(`✅ Image modal loaded: ${fileName}`);
+        })
+        .catch(error => {
+            console.error(`❌ Image modal failed: ${fileUrl}`, error);
+            showNotification('فشل تحميل الصورة', 'error');
+        });
     } else if (isPdf) {
-        pdf.src = fileUrl;
-        pdf.style.display = 'block';
+        // Load PDF as blob for better CORS handling
+        fetch(fileUrl, {
+            headers: {
+                'ngrok-skip-browser-warning': 'true'
+            }
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const blobUrl = URL.createObjectURL(blob);
+            pdf.src = blobUrl;
+            pdf.style.display = 'block';
+            console.log(`✅ PDF modal loaded: ${fileName}`);
+        })
+        .catch(error => {
+            console.error(`❌ PDF modal failed: ${fileUrl}`, error);
+            showNotification('فشل تحميل الملف', 'error');
+        });
     } else {
         // For other files, just download
         downloadFile(file.id || fileName, fileName);
