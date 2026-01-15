@@ -1027,6 +1027,12 @@ async function updateLand() {
                 state.lands[landIndex] = {...state.lands[landIndex], ...updateData};
             }
             
+            // Upload new files if they exist
+            if (state.uploadedFiles && state.uploadedFiles.length > 0) {
+                console.log('📁 بدء رفع الملفات الجديدة:', state.uploadedFiles.length);
+                await uploadFilesForLand(landId, state.uploadedFiles);
+            }
+            
             closeDetailsPanel();
             resetForm();
             loadLandsFromServer();
@@ -1050,6 +1056,8 @@ async function saveLandToServer(landData) {
             description: landData.description,
             province: landData.province,
             area: landData.area,
+            holderName: landData.holderName || null,
+            holderPhone: landData.holderPhone || null,
             centerLat: state.currentLand?.centerLat || 0,
             centerLng: state.currentLand?.centerLng || 0,
             points: landData.points,
@@ -1071,7 +1079,15 @@ async function saveLandToServer(landData) {
         
         if (response.ok) {
             const result = await response.json();
+            const landId = result.id;
             console.log('✅ تم حفظ الأرض في قاعدة البيانات:', result);
+            
+            // Upload files if they exist
+            if (state.uploadedFiles && state.uploadedFiles.length > 0) {
+                console.log('📁 بدء رفع الملفات:', state.uploadedFiles.length);
+                await uploadFilesForLand(landId, state.uploadedFiles);
+            }
+            
             showNotification('✅ تم حفظ الأرض بنجاح!', 'success');
             loadLandsFromServer(); // Refresh lands from server
         } else {
@@ -1082,6 +1098,46 @@ async function saveLandToServer(landData) {
     } catch (error) {
         console.error('❌ خطأ في الاتصال بالخادم:', error);
         showNotification('❌ خطأ في الاتصال بالخادم: ' + error.message, 'error');
+    }
+}
+
+// Upload Files for Land
+async function uploadFilesForLand(landId, uploadedFiles) {
+    try {
+        for (const file of uploadedFiles) {
+            const formData = new FormData();
+            
+            // Convert base64 to Blob if needed
+            if (typeof file === 'object' && file.content) {
+                // File with content in base64
+                const binaryString = atob(file.content.split(',')[1]);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: file.type });
+                formData.append('files', blob, file.name);
+            } else if (file instanceof File) {
+                formData.append('files', file);
+            }
+            
+            const response = await fetch(`${CONFIG.apiUrl}/lands/${landId}/files`, {
+                method: 'POST',
+                headers: {
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: formData
+            });
+            
+            if (response.ok) {
+                console.log(`✅ تم رفع الملف: ${file.name}`);
+            } else {
+                console.error(`❌ خطأ في رفع الملف: ${file.name}`);
+            }
+        }
+        console.log('✅ تم رفع جميع الملفات بنجاح');
+    } catch (error) {
+        console.error('❌ خطأ في رفع الملفات:', error);
     }
 }
 
