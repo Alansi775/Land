@@ -812,7 +812,7 @@ function renderUploadedFiles() {
         console.log('📊 Image object:', img);
         console.log('⚙️ CONFIG.apiUrl:', CONFIG.apiUrl);
         
-        // Load image as Blob for better CORS handling
+        // Load image as Data URL for immediate display
         fetch(imageSrc, {
             headers: {
                 'ngrok-skip-browser-warning': 'true'
@@ -820,10 +820,13 @@ function renderUploadedFiles() {
         })
         .then(response => response.blob())
         .then(blob => {
-            const blobUrl = URL.createObjectURL(blob);
-            imgEl.src = blobUrl;
-            imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
-            console.log(`✅ Image loaded successfully: ${img.file_name || img.name || 'Unknown'}`);
+            const reader = new FileReader();
+            reader.onload = () => {
+                imgEl.src = reader.result; // Use Data URL for immediate display
+                imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+                console.log(`✅ Image loaded successfully: ${img.file_name || img.name || 'Unknown'}`);
+            };
+            reader.readAsDataURL(blob);
         })
         .catch(error => {
             console.error(`❌ Image failed to load: ${imageSrc}`, error);
@@ -1095,17 +1098,20 @@ function viewFileInModal(file) {
         })
         .then(response => response.blob())
         .then(blob => {
-            const blobUrl = URL.createObjectURL(blob);
-            image.src = blobUrl;
-            image.style.display = 'block';
-            console.log(`✅ Image modal loaded: ${fileName}`);
+            const reader = new FileReader();
+            reader.onload = () => {
+                image.src = reader.result; // Use Data URL for immediate display
+                image.style.display = 'block';
+                console.log(`✅ Image modal loaded: ${fileName}`);
+            };
+            reader.readAsDataURL(blob);
         })
         .catch(error => {
             console.error(`❌ Image modal failed: ${fileUrl}`, error);
             showNotification('فشل تحميل الصورة', 'error');
         });
     } else if (isPdf) {
-        // Load PDF as blob for better CORS handling
+        // Load PDF as Blob for better CORS handling
         fetch(fileUrl, {
             headers: {
                 'ngrok-skip-browser-warning': 'true'
@@ -1113,10 +1119,13 @@ function viewFileInModal(file) {
         })
         .then(response => response.blob())
         .then(blob => {
-            const blobUrl = URL.createObjectURL(blob);
-            pdf.src = blobUrl;
-            pdf.style.display = 'block';
-            console.log(`✅ PDF modal loaded: ${fileName}`);
+            const reader = new FileReader();
+            reader.onload = () => {
+                pdf.src = reader.result; // Use Data URL for immediate display
+                pdf.style.display = 'block';
+                console.log(`✅ PDF modal loaded: ${fileName}`);
+            };
+            reader.readAsDataURL(blob);
         })
         .catch(error => {
             console.error(`❌ PDF modal failed: ${fileUrl}`, error);
