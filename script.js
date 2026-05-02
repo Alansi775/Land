@@ -812,7 +812,7 @@ function renderUploadedFiles() {
                          img.url || '';
         
         console.log(`🖼️ Loading image: ${img.file_name || img.name || 'Unknown'} (ID: ${img.id}), URL: ${imageSrc}`);
-        console.log('📊 Image object:', img);
+        console.log(' Image object:', img);
         console.log('⚙️ CONFIG.apiUrl:', CONFIG.apiUrl);
         
         // Load image as Data URL for immediate display
@@ -827,12 +827,12 @@ function renderUploadedFiles() {
             reader.onload = () => {
                 imgEl.src = reader.result; // Use Data URL for immediate display
                 imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
-                console.log(`✅ Image loaded successfully: ${img.file_name || img.name || 'Unknown'}`);
+                console.log(` Image loaded successfully: ${img.file_name || img.name || 'Unknown'}`);
             };
             reader.readAsDataURL(blob);
         })
         .catch(error => {
-            console.error(`❌ Image failed to load: ${imageSrc}`, error);
+            console.error(` Image failed to load: ${imageSrc}`, error);
             thumb.style.background = '#666';
             thumb.innerHTML = '<i class="fas fa-image" style="font-size: 30px; color: #999; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;"></i>';
         });
@@ -1062,8 +1062,8 @@ function viewFileInModal(file) {
     const fileType = file.type || file.file_type || '';
     
     if (!fileUrl) {
-        console.error('❌ No file URL available:', file);
-        showNotification('❌ لا يمكن فتح الملف', 'error');
+        console.error(' No file URL available:', file);
+        showNotification(' لا يمكن فتح الملف', 'error');
         return;
     }
     
@@ -1077,7 +1077,7 @@ function viewFileInModal(file) {
     const isPdf = fileType === 'application/pdf' || fileName.endsWith('.pdf');
     
     console.log(`📂 Opening file: ${fileName}, URL: ${fileUrl}, isImage: ${isImage}, isPdf: ${isPdf}, fileType: ${fileType}`);
-    console.log('📋 File object:', file);
+    console.log(' File object:', file);
     
     // Reset
     image.style.display = 'none';
@@ -1105,12 +1105,12 @@ function viewFileInModal(file) {
             reader.onload = () => {
                 image.src = reader.result; // Use Data URL for immediate display
                 image.style.display = 'block';
-                console.log(`✅ Image modal loaded: ${fileName}`);
+                console.log(` Image modal loaded: ${fileName}`);
             };
             reader.readAsDataURL(blob);
         })
         .catch(error => {
-            console.error(`❌ Image modal failed: ${fileUrl}`, error);
+            console.error(` Image modal failed: ${fileUrl}`, error);
             showNotification('فشل تحميل الصورة', 'error');
         });
     } else if (isPdf) {
@@ -1126,12 +1126,12 @@ function viewFileInModal(file) {
             reader.onload = () => {
                 pdf.src = reader.result; // Use Data URL for immediate display
                 pdf.style.display = 'block';
-                console.log(`✅ PDF modal loaded: ${fileName}`);
+                console.log(` PDF modal loaded: ${fileName}`);
             };
             reader.readAsDataURL(blob);
         })
         .catch(error => {
-            console.error(`❌ PDF modal failed: ${fileUrl}`, error);
+            console.error(` PDF modal failed: ${fileUrl}`, error);
             showNotification('فشل تحميل الملف', 'error');
         });
     } else {
@@ -1179,7 +1179,7 @@ async function deleteFileFromLand(landId, fileId, fileName = 'الملف') {
         });
         
         if (response.ok) {
-            showNotification(`✅ تم حذف ${fileName} بنجاح`, 'success');
+            showNotification(` تم حذف ${fileName} بنجاح`, 'success');
             
             // Remove from local state immediately
             state.uploadedFiles = state.uploadedFiles.filter(f => f.id !== fileId);
@@ -1204,14 +1204,14 @@ async function deleteFileFromLand(landId, fileId, fileName = 'الملف') {
                     drawLandOnMap(land);
                 }
             }
-            console.log('✅ File deleted and UI refreshed');
+            console.log(' File deleted and UI refreshed');
         } else {
             const error = await response.json();
-            showNotification('❌ خطأ في حذف الملف: ' + (error.error || 'فشل الحذف'), 'error');
+            showNotification(' خطأ في حذف الملف: ' + (error.error || 'فشل الحذف'), 'error');
         }
     } catch (error) {
-        console.error('❌ خطأ في حذف الملف:', error);
-        showNotification('❌ خطأ في الاتصال بالخادم', 'error');
+        console.error(' خطأ في حذف الملف:', error);
+        showNotification(' خطأ في الاتصال بالخادم', 'error');
     }
 }
 
@@ -1341,7 +1341,7 @@ function saveLand(e) {
     // Draw polygon on map permanently
     // drawLandOnMap(landData);
     
-    showNotification('✅ جاري حفظ الأرض في قاعدة البيانات...', 'success');
+    showNotification(' جاري حفظ الأرض في قاعدة البيانات...', 'success');
     closeDetailsPanel();
     resetDrawing();
 }
@@ -1405,7 +1405,7 @@ async function updateLand() {
         });
 
         if (response.ok) {
-            showNotification('✅ تم تحديث الأرض بنجاح', 'success');
+            showNotification(' تم تحديث الأرض بنجاح', 'success');
             
             // Update local state
             const landIndex = state.lands.findIndex(l => l.id === landId);
@@ -1452,7 +1452,7 @@ async function saveLandToServer(landData) {
             createdAt: landData.createdAt
         };
         
-        console.log('📋 بيانات الطلب:', requestBody);
+        console.log(' بيانات الطلب:', requestBody);
         
         const response = await fetch(`${CONFIG.apiUrl}/lands`, {
             method: 'POST',
@@ -1468,7 +1468,7 @@ async function saveLandToServer(landData) {
         if (response.ok) {
             const result = await response.json();
             const landId = result.id;
-            console.log('✅ تم حفظ الأرض في قاعدة البيانات:', result);
+            console.log(' تم حفظ الأرض في قاعدة البيانات:', result);
             
             // Upload files if they exist
             if (state.uploadedFiles && state.uploadedFiles.length > 0) {
@@ -1476,16 +1476,16 @@ async function saveLandToServer(landData) {
                 await uploadFilesForLand(landId, state.uploadedFiles);
             }
             
-            showNotification('✅ تم حفظ الأرض بنجاح!', 'success');
+            showNotification(' تم حفظ الأرض بنجاح!', 'success');
             loadLandsFromServer(); // Refresh lands from server
         } else {
             const errorText = await response.text();
-            console.error('❌ خطأ في حفظ الأرض:', response.statusText, errorText);
-            showNotification('❌ خطأ في حفظ الأرض: ' + response.statusText, 'error');
+            console.error(' خطأ في حفظ الأرض:', response.statusText, errorText);
+            showNotification(' خطأ في حفظ الأرض: ' + response.statusText, 'error');
         }
     } catch (error) {
-        console.error('❌ خطأ في الاتصال بالخادم:', error);
-        showNotification('❌ خطأ في الاتصال بالخادم: ' + error.message, 'error');
+        console.error(' خطأ في الاتصال بالخادم:', error);
+        showNotification(' خطأ في الاتصال بالخادم: ' + error.message, 'error');
     }
 }
 
@@ -1534,7 +1534,7 @@ async function uploadFilesForLand(landId, uploadedFiles) {
                     console.log(`📤 إرسال ملف base64: ${fileName} (${mimeType})`);
                 } else {
                     console.warn('⚠️ ملف غير معروف:', file);
-                    console.log('📋 خصائص الملف:', Object.keys(file));
+                    console.log(' خصائص الملف:', Object.keys(file));
                     continue;
                 }
                 
@@ -1548,18 +1548,18 @@ async function uploadFilesForLand(landId, uploadedFiles) {
                 
                 if (response.ok) {
                     const result = await response.json();
-                    console.log(`✅ تم رفع الملف بنجاح:`, result);
+                    console.log(` تم رفع الملف بنجاح:`, result);
                 } else {
                     const error = await response.text();
-                    console.error(`❌ خطأ في رفع الملف (${response.status}):`, error);
+                    console.error(` خطأ في رفع الملف (${response.status}):`, error);
                 }
             } catch (fileError) {
-                console.error(`❌ خطأ في معالجة الملف:`, fileError);
+                console.error(` خطأ في معالجة الملف:`, fileError);
             }
         }
-        console.log('✅ اكتمل رفع الملفات');
+        console.log(' اكتمل رفع الملفات');
     } catch (error) {
-        console.error('❌ خطأ في رفع الملفات:', error);
+        console.error(' خطأ في رفع الملفات:', error);
     }
 }
 
@@ -1964,15 +1964,15 @@ function viewLandDetails(landId) {
     // Convert to number if needed
     const id = parseInt(landId) || landId;
     console.log('🔍 viewLandDetails called with:', landId, 'converted to:', id);
-    console.log('📊 Available lands:', state.lands.map(l => ({ id: l.id, name: l.name })));
+    console.log(' Available lands:', state.lands.map(l => ({ id: l.id, name: l.name })));
     
     const land = state.lands.find(l => parseInt(l.id) === id || l.id === id);
     if (!land) {
-        console.error('❌ Land not found:', id, 'Available lands:', state.lands.map(l => l.id));
+        console.error(' Land not found:', id, 'Available lands:', state.lands.map(l => l.id));
         return;
     }
     
-    console.log('✅ Land found:', land.name);
+    console.log(' Land found:', land.name);
 
     state.selectedLandId = id;
     state.drawingPoints = land.points;
@@ -2021,7 +2021,7 @@ function viewLandDetails(landId) {
         submitBtn.innerHTML = 'تحديث الأرض';
     }
 
-    console.log('📄 Rendering files:', state.uploadedFiles);
+    console.log(' Rendering files:', state.uploadedFiles);
     renderUploadedFiles();
 
     // Show navigate button and delete button

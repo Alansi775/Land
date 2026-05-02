@@ -26,37 +26,47 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, '../')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Create connection for initial setup (without database)
-const setupPool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || ''
-});
-
-// Create database if it doesn't exist
-(async () => {
-    try {
-        const connection = await setupPool.getConnection();
-        await connection.query(
-            `CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME || 'yemen_lands'}`
-        );
-        connection.release();
-        console.log('✅ Database created or already exists');
-    } catch (err) {
-        console.error('❌ Error creating database:', err);
+// ⚠️ CRITICAL: Validate Railway Database Configuration
+const validateRailwayConfig = () => {
+    const required = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME'];
+    const missing = required.filter(key => !process.env[key]);
+    
+    if (missing.length > 0) {
+        console.error('\n CRITICAL ERROR: Missing Railway database configuration');
+        console.error('Missing variables:', missing.join(', '));
+        console.error('Please configure .env with Railway credentials.');
+        process.exit(1);
     }
-})();
+    
+    // ENFORCE: NOT localhost (force Railway only)
+    if (process.env.DB_HOST === 'localhost' || process.env.DB_HOST === '127.0.0.1') {
+        console.error('\n CRITICAL ERROR: DB_HOST cannot be localhost or 127.0.0.1!');
+        console.error('This project uses ONLY Railway MySQL (tramway.proxy.rlwy.net)');
+        console.error('Using local MySQL is forbidden to maintain data consistency.');
+        process.exit(1);
+    }
+};
 
-// MySQL Connection Pool
+validateRailwayConfig();
+
+// MySQL Connection Pool - RAILWAY ONLY (No fallbacks, no localhost)
 const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'yemen_lands',
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT) || 28820,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelayMs: 0
 });
+
+console.log('\n Railway MySQL Configuration:');
+console.log(`   Host: ${process.env.DB_HOST}`);
+console.log(`   Port: ${process.env.DB_PORT}`);
+console.log(`   Database: ${process.env.DB_NAME}\n`);
 
 // File Upload Configuration
 const storage = multer.diskStorage({
@@ -91,12 +101,13 @@ const upload = multer({
     }
 });
 
-// Initialize Database
+// Initialize Database (Railway tables already exist, but ensure they're ready)
 async function initDatabase() {
     try {
         const connection = await pool.getConnection();
         
-        // Create lands table
+        // Verify tables exist (Railway should already have them)
+        // Create lands table if it doesn't exist
         await connection.query(`
             CREATE TABLE IF NOT EXISTS lands (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -116,7 +127,7 @@ async function initDatabase() {
                 INDEX idx_province (province),
                 INDEX idx_created_at (created_at)
             )
-        `);
+        `);;
 
         // Add new columns if they don't exist
         try {
@@ -171,9 +182,9 @@ async function initDatabase() {
         `);
 
         connection.release();
-        console.log('✅ Database initialized successfully');
+        console.log(' Database initialized successfully');
     } catch (error) {
-        console.error('❌ Database initialization error:', error);
+        console.error(' Database initialization error:', error);
     }
 }
 
@@ -331,8 +342,8 @@ app.post('/api/lands/:id/files', upload.array('files', 10), async (req, res) => 
         const files = req.files;
         
         console.log(`📁 طلب رفع ملفات للأرض ${landId}`);
-        console.log(`📊 عدد الملفات: ${files ? files.length : 0}`);
-        console.log(`📋 الملفات:`, files);
+        console.log(` عدد الملفات: ${files ? files.length : 0}`);
+        console.log(` الملفات:`, files);
         
         if (!files || files.length === 0) {
             console.warn('⚠️ لم يتم استقبال أي ملفات');
@@ -348,7 +359,7 @@ app.post('/api/lands/:id/files', upload.array('files', 10), async (req, res) => 
                 VALUES (?, ?, ?, ?, ?)
             `, [landId, file.originalname, file.path, file.size, file.mimetype]);
             
-            console.log(`✅ تم حفظ الملف بـ ID: ${result.insertId}`);
+            console.log(` تم حفظ الملف بـ ID: ${result.insertId}`);
             
             fileRecords.push({
                 id: result.insertId,
@@ -362,7 +373,7 @@ app.post('/api/lands/:id/files', upload.array('files', 10), async (req, res) => 
         console.log(`🎉 تم رفع جميع الملفات بنجاح: ${fileRecords.length}`);
         res.json({ message: 'تم رفع الملفات بنجاح', files: fileRecords });
     } catch (error) {
-        console.error('❌ خطأ في رفع الملفات:', error);
+        console.error(' خطأ في رفع الملفات:', error);
         res.status(500).json({ error: 'فشل في رفع الملفات', details: error.message });
     }
 });
@@ -387,7 +398,7 @@ app.get('/api/files/:id', async (req, res) => {
         try {
             await fs.access(filePath);
         } catch (err) {
-            console.error(`❌ File not found on disk: ${filePath}`);
+            console.error(` File not found on disk: ${filePath}`);
             return res.status(404).json({ error: 'الملف غير موجود في النظام' });
         }
         
@@ -427,7 +438,7 @@ app.get('/api/files/:id', async (req, res) => {
             res.download(filePath, fileName);
         }
     } catch (error) {
-        console.error('❌ Error accessing file:', error);
+        console.error(' Error accessing file:', error);
         res.status(500).json({ error: 'خطأ في تحميل الملف' });
     }
 });
@@ -535,17 +546,109 @@ app.use((error, req, res, next) => {
     res.status(500).json({ error: error.message || 'حدث خطأ في الخادم' });
 });
 
+//  VALIDATION ENDPOINT: Test Railway MySQL Connection
+app.get('/api/health/railway', async (req, res) => {
+    try {
+        const connection = await pool.getConnection();
+        
+        // Test 1: Verify we can query the database
+        const [databases] = await connection.query('SELECT DATABASE() as current_db');
+        
+        // Test 2: Count existing lands
+        const [landCount] = await connection.query('SELECT COUNT(*) as count FROM lands');
+        
+        // Test 3: Get table info
+        const [tableInfo] = await connection.query(
+            "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME IN ('lands', 'land_files')",
+            [process.env.DB_NAME]
+        );
+        
+        connection.release();
+        
+        return res.json({
+            status: 'connected',
+            database: databases[0]?.current_db,
+            railway_configured: process.env.DB_HOST,
+            lands_count: landCount[0]?.count || 0,
+            tables: tableInfo.map(t => t.TABLE_NAME),
+            message: ' Successfully connected to Railway MySQL'
+        });
+    } catch (error) {
+        console.error('Railway connection test failed:', error);
+        res.status(500).json({
+            status: 'error',
+            error: error.message,
+            db_host: process.env.DB_HOST,
+            message: ' Failed to connect to Railway MySQL'
+        });
+    }
+});
+
+//  TEST ENDPOINT: Insert test record and verify it's in Railway
+app.post('/api/health/test-insert', async (req, res) => {
+    let testId = null;
+    try {
+        const connection = await pool.getConnection();
+        
+        // Test insert
+        const testData = {
+            name: 'Test Land - Railway Validation',
+            description: 'This is a test record to verify Railway connection',
+            province: 'تعز',
+            area: 100,
+            centerLat: 14.465,
+            centerLng: 44.590,
+            points: JSON.stringify([[14.465, 44.590], [14.466, 44.591]]),
+            createdAt: new Date().toISOString()
+        };
+        
+        const [insertResult] = await connection.query(
+            'INSERT INTO lands (name, description, province, area, centerLat, centerLng, points, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
+            [testData.name, testData.description, testData.province, testData.area, testData.centerLat, testData.centerLng, testData.points]
+        );
+        
+        testId = insertResult.insertId;
+        
+        // Test read back
+        const [verifyResult] = await connection.query('SELECT * FROM lands WHERE id = ?', [testId]);
+        
+        connection.release();
+        
+        if (verifyResult.length > 0) {
+            return res.json({
+                status: 'success',
+                message: ' Test record inserted and retrieved successfully from Railway',
+                inserted_id: testId,
+                record: verifyResult[0]
+            });
+        } else {
+            return res.status(500).json({
+                status: 'error',
+                message: ' Record inserted but could not be retrieved',
+                inserted_id: testId
+            });
+        }
+    } catch (error) {
+        console.error('Test insert failed:', error);
+        res.status(500).json({
+            status: 'error',
+            message: ' Failed to test Railway connection',
+            error: error.message,
+            test_id: testId
+        });
+    }
+});
+
 // Start Server
 async function startServer() {
     try {
-        // Wait a bit for database creation
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
         await initDatabase();
         
         app.listen(PORT, () => {
-            console.log(`🚀 Server running on http://localhost:${PORT}`);
-            console.log(`📊 API available at http://localhost:${PORT}/api`);
+            console.log(`\n Server running on http://localhost:${PORT}`);
+            console.log(` API available at http://localhost:${PORT}/api`);
+            console.log(`\n Database: Railway MySQL (${process.env.DB_HOST})`);
+            console.log(` Health check: http://localhost:${PORT}/api/health/railway\n`);
         });
     } catch (error) {
         console.error('Failed to start server:', error);
