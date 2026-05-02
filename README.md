@@ -174,6 +174,49 @@ Submit a contact message
 }
 ```
 
+## Backup Database
+This Project Database has a backup version on 3rd of May I have uploaded to Railway 
+you can just type Railway on the browser and then login with github Alansi775 you can find the data there
+if you want to login from the terminal just follow the below instructions
+on the terminal do this:
+mysql -h tramway.proxy.rlwy.net -P 28820 -u root -p
+then paste this password 
+qbQIgmWhiBpdxWUYWMNYBYoqCpcEKFkX
+
+then
+SHOW DATABASES;
+
+you will get this 
+mysql> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| railway            |
+| sys                |
++--------------------+
+5 rows in set (0.211 sec)
+
+then 
+USE railway;
+SHOW TABLES;
+mysql> SHOW TABLES;
++-------------------+
+| Tables_in_railway |
++-------------------+
+| land_files        |
+| lands             |
++-------------------+
+2 rows in set (0.211 sec)
+
+mysql> SELECT * FROM lands LIMIT 10;
+you should see the data here 
+
+if you want to make backup for the database just do this 
+
+
 ## Key Features
 
 - Property management and organization

@@ -299,7 +299,10 @@ function initEventListeners() {
     document.getElementById('addLandBtn').addEventListener('click', startNewLand);
     
     // Delete Land Button
-    document.getElementById('deleteLandBtn').addEventListener('click', deleteLand);
+    document.getElementById('deleteLandBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        deleteLand();
+    });
 
     // Form Submit
     document.getElementById('landForm').addEventListener('submit', saveLand);
@@ -1288,6 +1291,8 @@ function saveLand(e) {
 
     const areaValue = parseFloat(document.getElementById('areaInput').value) || 0;
     const province = document.getElementById('governorateInput').value;
+    const subRegion = document.getElementById('subRegionInput').value.trim() || null;
+    const cropType = document.getElementById('cropTypeInput').value.trim() || null;
 
     if (!areaValue || !province) {
         showNotification('يجب إدخال المساحة واختيار المحافظة', 'error');
@@ -1311,6 +1316,8 @@ function saveLand(e) {
         name: landName,
         description: document.getElementById('landDescription').value,
         province: province,
+        subRegion: subRegion,
+        cropType: cropType,
         area: areaValue,
         holderName: holderName || null,
         holderPhone: fullPhoneNumber,

@@ -23,8 +23,8 @@ app.use(cors({
 app.options('*', cors());
 
 app.use(express.json({ limit: '50mb' }));
-app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
+app.use(express.static(path.join(__dirname, '../')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Create connection for initial setup (without database)
 const setupPool = mysql.createPool({
